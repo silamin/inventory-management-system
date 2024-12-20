@@ -1,0 +1,78 @@
+﻿@page "/login"
+@inject NavigationManager NavigationManager
+@inject LoginManager LoginManager
+@inject Blazored.Toast.Services.IToastService ToastService
+
+<div class="container" style="max-width:400px; margin-top:100px;">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h4 class="card-title text-center mb-4">Inventory Management System</h4>
+
+            @if (!string.IsNullOrEmpty(LoginManager.ErrorMessage))
+            {
+                <div class="alert alert-danger" role="alert">
+                    @LoginManager.ErrorMessage
+                </div>
+            }
+
+            <EditForm Model="@LoginManager.LoginRequest" OnValidSubmit="HandleValidSubmit">
+                <div class="form-group mb-3">
+                    <label for="username">Username</label>
+                    <InputText @bind-Value="LoginManager.LoginRequest.Username" class="form-control" id="username" required />
+                </div>
+
+                <div class="form-group mb-3">
+                    <label for="password">Password</label>
+                    <InputText @bind-Value="LoginManager.LoginRequest.Password" type="password" class="form-control" id="password" required />
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100" disabled="@LoginManager.IsLoading">
+                    @if (LoginManager.IsLoading)
+                    {
+                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        <span>Loading...</span>
+                    }
+                    else
+                    {
+                        <span>Login</span>
+                    }
+                </button>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@code {
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            bool loginSuccess = await LoginManager.AttemptLoginAsync();
+            if (loginSuccess)
+            {
+                ToastService.ShowSuccess("Login successful! Welcome back.", settings =>
+                {
+                    settings.Timeout = 5000;
+                });
+
+                //var role = await LoginManager.GetUserRoleAsync();
+                NavigationManager.NavigateTo("/inventory-dashboard");
+
+            }
+            else
+            {
+                ToastService.ShowError(LoginManager.ErrorMessage, settings =>
+                {
+                    settings.Timeout = 7000;
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError("An unexpected error occurred: " + ex.Message, settings =>
+            {
+                settings.Timeout = 7000;
+            });
+        }
+    }
+}

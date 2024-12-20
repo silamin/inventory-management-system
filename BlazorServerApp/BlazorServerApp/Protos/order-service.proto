@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+import "user-service.proto"; // Import the user-service.proto file
+package orders;
+
+
+service OrderService {
+  rpc createOrder(OrderRequest) returns (Order);
+  rpc getAllOrders(google.protobuf.Empty) returns (OrderList);
+}
+
+message OrderRequest {
+  repeated OrderItem order_items = 1;
+  int32 user_id = 2;
+  int32 created_by = 3;
+}
+
+message OrderItem {
+  int32 order_item_id = 1;
+  int32 item_id = 2;
+  int32 quantity_to_pick = 3;
+}
+
+message Order {
+  int32 order_id = 1;
+  repeated OrderItem order_items = 2;
+  google.protobuf.Timestamp created_at = 3;
+  users.User assigned_user = 4;
+  users.User created_by_user = 5;
+  OrderStatus order_status = 6;
+  google.protobuf.Timestamp delivery_date = 7;
+}
+
+message OrderList {
+  repeated Order orders = 1;
+}
+
+enum OrderStatus {
+  COMPLETED = 0;
+  IN_PROGRESS = 1;
+}

@@ -1,0 +1,163 @@
+﻿@page "/inventory-dashboard"
+@attribute [Authorize(Roles = "InventoryManager")]
+
+@using SEP3_T1_BlazorUI.Presentation.Managers;
+@using SEP3_T1_BlazorUI.Models;
+@inject InventoryManager Manager
+@inject Blazored.Toast.Services.IToastService ToastService
+
+<PageTitle>Home</PageTitle>
+
+<h1>Inventory Dashboard</h1>
+
+<p>Welcome to your inventory management system.</p>
+
+<!-- Search Bar -->
+<div class="input-group mb-3">
+    <div class="input-group-prepend">
+        <span class="input-group-text h-100 w-100">
+            <i class="fas fa-search"></i>
+        </span>
+    </div>
+    <input type="text"
+           class="form-control"
+           placeholder="Search by Name or Description"
+           @bind="Manager.SearchQuery"
+           @bind:event="oninput" />
+    <div class="input-group-append">
+        <button class="btn btn-outline-secondary" @onclick="Manager.ClearSearch" type="button">
+            <i class="fas fa-times"></i> Clear
+        </button>
+    </div>
+</div>
+
+<!-- Table -->
+<table class="table table-bordered table-hover">
+    <thead class="thead-dark">
+        <tr>
+            <th class="text-center">Select</th>
+            <th @onclick="() => Manager.SortByName()" style="cursor: pointer;">
+                Name
+                <i class="@Manager.GetSortIcon("Name")"></i>
+            </th>
+            <th @onclick="() => Manager.SortByDescription()" style="cursor: pointer;">
+                Description
+                <i class="@Manager.GetSortIcon("Description")"></i>
+            </th>
+            <th>ID</th>
+            <th @onclick="() => Manager.SortByQuantityInStore()" style="cursor: pointer;">
+                Quantity In Store
+                <i class="@Manager.GetSortIcon("QuantityInStore")"></i>
+            </th>
+            <th>Order Quantity</th>
+            <th class="text-center">Delete</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Manager.PagedItems)
+        {
+            <tr @key="item.Id">
+                <td class="text-center">
+                    <InputCheckbox @bind-Value="item.IsSelected" disabled="@((item.QuantityInStore == 0))" />
+                </td>
+
+                <td>
+                    <input type="text"
+                           class="form-control"
+                           @bind="item.Name"
+                           @bind:after="() => UpdateItem(item)" />
+                </td>
+
+                <td>
+                    <input type="text"
+                           class="form-control"
+                           @bind="item.Description"
+                           @bind:after="() => UpdateItem(item)" />
+                </td>
+
+                <td>@item.Id</td>
+
+                <td>
+                    <input type="number"
+                           class="form-control"
+                           min="0"
+                           @bind="item.QuantityInStore"
+                           @bind:after="() => UpdateItem(item)" />
+                </td>
+
+                <td>
+                    <input type="number"
+                           class="form-control"
+                           min="1"
+                           @bind="item.OrderQuantity"
+                           @bind:after="() => ResetOrderQuantity(item)"
+                           disabled="@(!item.IsSelected)" />
+                </td>
+
+                <td class="text-center">
+                    <button class="btn btn-danger btn-sm" @onclick="() => DeleteItem(item)">
+                        <i class="fas fa-trash-alt"></i> Delete
+                    </button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Pagination -->
+<div class="d-flex justify-content-between align-items-center mt-3">
+    <button class="btn btn-secondary" @onclick="Manager.PreviousPage" disabled="@Manager.IsFirstPage">
+        <i class="fas fa-arrow-left"></i> Previous
+    </button>
+    <span>Page @Manager.CurrentPage of @Manager.TotalPages</span>
+    <button class="btn btn-secondary" @onclick="Manager.NextPage" disabled="@Manager.IsLastPage">
+        Next <i class="fas fa-arrow-right"></i>
+    </button>
+</div>
+
+<!-- Place Order Button -->
+<div class="my-3">
+    <button class="btn btn-primary w-100" @onclick="PlaceOrder" disabled="@(!Manager.HasSelectedItems)">
+        <i class="fas fa-shopping-cart"></i> Place Order
+    </button>
+</div>
+
+@code {
+    private void UpdateItem(Item item)
+    {
+        Manager.UpdateItem(item);
+        ToastService.ShowSuccess($"Item '{item.Name}' updated successfully!");
+    }
+
+    private void ResetOrderQuantity(Item item)
+    {
+        if (item.QuantityInStore == 0)
+        {
+            item.OrderQuantity = 0;
+        }
+        else if (item.OrderQuantity > item.QuantityInStore)
+        {
+            item.OrderQuantity = item.QuantityInStore;
+            ToastService.ShowWarning($"Order quantity for '{item.Name}' has been reset to {item.QuantityInStore}.");
+        }
+        else if (item.OrderQuantity < 1)
+        {
+            item.OrderQuantity = 1;
+            ToastService.ShowWarning($"Order quantity for '{item.Name}' has been reset to 1.");
+        }
+        StateHasChanged();
+    }
+
+    private void DeleteItem(Item item)
+    {
+        Manager.DeleteItem(item);
+        ToastService.ShowSuccess($"Item '{item.Name}' deleted successfully!");
+        StateHasChanged();
+    }
+
+    private async Task PlaceOrder()
+    {
+        await Manager.PlaceOrder();
+        ToastService.ShowSuccess("Order placed successfully");
+    }
+}

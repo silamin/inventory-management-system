@@ -1,0 +1,210 @@
+# ================================================
+# .NET Core
+# ================================================
+
+# Build Folders
+bin/
+obj/
+out/
+artifacts/
+
+# ASP.NET Core
+project.lock.json
+project.fragment.lock.json
+
+# Publish Directory
+publish/
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# StyleCop
+StyleCopReport.xml
+
+# Files built by Visual Studio
+*_i.c
+*_p.c
+*_h.h
+*.ilk
+*.meta
+*.obj
+*.iobj
+*.pch
+*.pdb
+*.ipdb
+*.pgc
+*.pgd
+*.rsp
+*.sbr
+*.tlb
+*.tli
+*.tlh
+*.tmp
+*.tmp_proj
+*.vspscc
+*.vssscc
+
+# ================================================
+# Visual Studio
+# ================================================
+
+# Ignore entire .vs folder at any level
+**/.vs/
+
+# Ignore specific file types in .vs directory at any depth
+**/.vs/**/*.bin
+**/.vs/**/*.metadata*
+**/.vs/**/*.v9.bin
+**/.vs/**/*.v9.metadata
+
+# User-specific files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.rsuser
+
+# Recycle Bin used by Visual Studio
+RecycleBin/
+
+# ================================================
+# JetBrains Rider
+# ================================================
+
+# Rider specific files
+.idea/
+*.sln.iml
+
+# ================================================
+# Visual Studio Code
+# ================================================
+
+# VS Code directories and files
+.vscode/
+.history/
+
+# ================================================
+# Node.js
+# ================================================
+
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# Optional npm cache directories
+.npm/
+.yarn-integrity
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Dependency lock files
+package-lock.json
+yarn.lock
+
+# Optional ESLint cache
+.eslintcache
+
+# Optional REPL history
+.node_repl_history
+
+# dotenv environment variables file
+.env
+.env.test
+.env.production
+
+# Parcel-bundler cache
+.cache/
+
+# Next.js build output
+.next/
+out/
+
+# Nuxt.js build / generate output
+.nuxt/
+dist/
+
+# Gatsby files
+.cache/
+public/
+
+# vuepress build output
+.vuepress/dist
+
+# Serverless directories
+.serverless/
+
+# FuseBox cache
+.fusebox/
+
+# DynamoDB Local files
+.dynamodb/
+
+# TernJS port file
+.tern-port
+
+# ================================================
+# Operating System Files
+# ================================================
+
+# macOS
+.DS_Store
+
+# Windows Thumbnail cache files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ================================================
+# Miscellaneous
+# ================================================
+
+# Backup & Temporary files
+*.bak
+*.backup
+*.BLOB
+*.orig
+*.tmp
+*.temp
+*.cache
+
+# Python files (if any)
+__pycache__/
+*.py[cod]
+
+# Specific to Blazor Projects
+BlazorWepAppT1/obj/
+BlazorWepAppT1/bin/
+BlazorWebAppT1/obj/
+BlazorWebAppT1/bin/
+
+# Specific to ASP.NET Core Projects
+SEP3_T3_ASP_Core_WebAPI/obj/
+SEP3_T3_ASP_Core_WebAPI/bin/
+
+# Ignore the entire .vs folder and its contents
+SEP3_T3_ASP_Core_WebAPI/.vs/
+
+# Ignore specific file types in .vs directory at any depth
+SEP3_T3_ASP_Core_WebAPI/.vs/**/*.bin
+SEP3_T3_ASP_Core_WebAPI/.vs/**/*.metadata*
+SEP3_T3_ASP_Core_WebAPI/.vs/**/*.v9.bin
+SEP3_T3_ASP_Core_WebAPI/.vs/**/*.v9.metadata
+
+# Ignore any .vs folder at any depth and all its contents
+**/.vs/
+
+# Ignore specific files like .bin and .metadata inside .vs at any depth
+**/.vs/**/*.bin
+**/.vs/**/*.metadata*
+
+# ================================================
+# Ignore Specific Files or Directories (Optional)
+# ================================================
+
+# Uncomment if you have tasks that create the project's static files in wwwroot
+# wwwroot/

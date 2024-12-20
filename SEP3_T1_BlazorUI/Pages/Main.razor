@@ -1,0 +1,41 @@
+﻿@page "/"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using SEP3_T1_BlazorUI.Models
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
+
+<PageTitle>Main</PageTitle>
+
+<h1>Redirecting...</h1>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (!user.Identity?.IsAuthenticated ?? true)
+        {
+            // If the user is not authenticated, navigate to the login page
+            Navigation.NavigateTo("/login", true);
+        }
+        else
+        {
+            // Check the user's role
+            if (user.IsInRole(Role.InventoryManager.ToString()))
+            {
+                Navigation.NavigateTo("/inventory-dashboard", true);
+            }
+            else if (user.IsInRole(Role.WarehouseWorker.ToString()))
+            {
+                Navigation.NavigateTo("/warehouse-worker", true);
+            }
+            else
+            {
+                // Default fallback if no role matches (optional)
+                Navigation.NavigateTo("/not-authorized", true);
+            }
+        }
+    }
+}

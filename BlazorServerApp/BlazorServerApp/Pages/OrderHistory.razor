@@ -1,0 +1,168 @@
+﻿@page "/order-history"
+
+@using BlazorServerApp.Managers
+@using Orders
+
+@inject OrderHistoryManager OrderHistoryManager
+
+<PageTitle>Order History</PageTitle>
+
+<h1 class="text-center">Order History</h1>
+
+<!-- Filters Section -->
+<div class="d-flex align-items-center justify-content-center mb-3 w-100">
+    <!-- Filter by Status -->
+    <div class="me-4">
+        <select class="form-select"
+                style="display:inline-block; width:fit-content; white-space:nowrap;"
+                @bind="OrderHistoryManager.SelectedStatus"
+                @bind:after="ApplyFilter">
+            <option value="">All Statuses</option>
+            @foreach (OrderStatus status in Enum.GetValues(typeof(OrderStatus)))
+            {
+                <option value="@status">@status</option>
+            }
+        </select>
+    </div>
+
+    <!-- Filter by Start Date -->
+    <div class="me-3">
+        <input type="date" class="form-control"
+               @bind="OrderHistoryManager.StartDate"
+               @bind:after="ApplyFilter" />
+    </div>
+
+    <!-- Filter by End Date -->
+    <div class="me-3">
+        <input type="date" class="form-control"
+               @bind="OrderHistoryManager.EndDate"
+               @bind:after="ApplyFilter" />
+    </div>
+
+    <!-- Search by Order ID -->
+    <div class="input-group">
+        <input type="text" class="form-control" placeholder="Search by Order ID"
+               @bind="OrderHistoryManager.SearchQuery"
+               @bind:event="oninput"
+               @bind:after="ApplyFilter" />
+        <button class="btn btn-outline-secondary" @onclick="ClearFilters" type="button">Clear</button>
+    </div>
+</div>
+
+<!-- Orders Table -->
+@if (PaginatedOrders?.Any() == true)
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th @onclick="() => SortByOrderId()" style="cursor:pointer;">
+                    Order ID
+                    <i class="@OrderHistoryManager.GetSortIcon("OrderId")"></i>
+                </th>
+                <th @onclick="() => SortByCreatedAt()" style="cursor:pointer;">
+                    Order Date
+                    <i class="@OrderHistoryManager.GetSortIcon("CreatedAt")"></i>
+                </th>
+                <th @onclick="() => SortByStatus()" style="cursor:pointer;">
+                    Status
+                    <i class="@OrderHistoryManager.GetSortIcon("Status")"></i>
+                </th>
+                <th>
+                    Created By
+                </th>
+                <th>
+                    Created At
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var order in PaginatedOrders)
+            {
+                <tr>
+                    <td>@order.OrderId</td>
+                    <td>@order.CreatedAt.ToDateTime().ToString("g")</td>
+                    <td class="@OrderHistoryManager.GetStatusClass(order.OrderStatus)">@order.OrderStatus</td>
+                    <td>@order.CreatedByUser?.Username</td>
+                    <td>@order.CreatedAt.ToDateTime().ToString("g")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No orders found for the selected filters.</p>
+}
+
+<!-- Pagination Controls -->
+<div class="d-flex justify-content-between align-items-center mt-3">
+    <button class="btn btn-secondary" @onclick="PreviousPage" disabled="@OrderHistoryManager.IsFirstPage">
+        <i class="fas fa-arrow-left"></i> Previous
+        </button>
+    <span>Page @OrderHistoryManager.CurrentPage of @OrderHistoryManager.TotalPages</span>
+        <button class="btn btn-secondary" @onclick="NextPage" disabled="@OrderHistoryManager.IsLastPage">
+            Next <i class="fas fa-arrow-right"></i>
+        </button>
+</div>
+
+@code {
+    private List<Order> PaginatedOrders;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await OrderHistoryManager.LoadAllOrdersAsync();
+        RefreshOrdersView();
+    }
+
+    private void RefreshOrdersView()
+    {
+        PaginatedOrders = OrderHistoryManager.PagedItems.ToList();
+        StateHasChanged();
+    }
+
+    private void ApplyFilter()
+    {
+        OrderHistoryManager.ResetPagination();
+        RefreshOrdersView();
+    }
+
+    private void ClearFilters()
+    {
+        OrderHistoryManager.ClearFilters();
+        RefreshOrdersView();
+    }
+
+    private void PreviousPage()
+    {
+        OrderHistoryManager.PreviousPage();
+        RefreshOrdersView();
+    }
+
+    private void NextPage()
+    {
+        OrderHistoryManager.NextPage();
+        RefreshOrdersView();
+    }
+
+    private void SortBy(string columnName)
+    {
+        OrderHistoryManager.SortByColumn(columnName);
+        RefreshOrdersView();
+    }
+    private void SortByOrderId()
+    {
+        OrderHistoryManager.SortByColumn("OrderId");
+        RefreshOrdersView();      
+    }
+    private void SortByCreatedAt()
+    {
+        OrderHistoryManager.SortByColumn("CreatedAt");
+        RefreshOrdersView();
+    }
+    private void SortByStatus()
+    {
+        
+        OrderHistoryManager.SortByColumn("Status");
+        RefreshOrdersView();
+    }
+}

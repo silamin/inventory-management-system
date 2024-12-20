@@ -1,0 +1,122 @@
+﻿@page "/manage-users"
+@attribute [Authorize(Roles = "InventoryManager")]
+
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components.Web
+@using SEP3_T1_BlazorUI.Models
+@using SEP3_T1_BlazorUI.Presentation.Managers
+
+@inject UserManager Manager
+
+<PageTitle>Manage Users</PageTitle>
+
+<h1>Manage Users</h1>
+
+<p>Here you can view and manage users by their roles.</p>
+
+<!-- Search and Filter Section -->
+<div class="input-group mb-4">
+    <input class="form-control" type="text" placeholder="Search by username or working number..." @bind="Manager.SearchQuery" />
+    <button class="btn btn-outline-secondary" type="button" @onclick="Manager.ClearSearch">
+        <i class="fas fa-times"></i> Clear
+    </button>
+</div>
+
+@if (Manager.GroupedUsers.Any())
+{
+    @foreach (var roleGroup in Manager.GroupedUsers)
+    {
+        <h4 class="mt-4">Role: @roleGroup.Key</h4>
+        <div class="table-responsive">
+            <table class="table table-hover table-bordered">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Username</th>
+                        <th>Password</th>
+                        <th>Working Number</th>
+                        <th>Role</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in roleGroup)
+                    {
+                        <tr>
+                            <td>@user.Username</td>
+                            <td>******</td>
+                            <td>@user.WorkingNumber</td>
+                            <td>@user.Role</td>
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-warning me-2" @onclick="() => Manager.ToggleEditUser(user)">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
+                                <button class="btn btn-sm btn-danger" @onclick="() => Manager.DeleteUser(user)">
+                                    <i class="fas fa-trash-alt"></i> Delete
+                                </button>
+                            </td>
+                        </tr>
+
+                        @if (Manager.EditingUser?.WorkingNumber == user.WorkingNumber)
+                        {
+                            <tr>
+                                <td colspan="5">
+                                    <EditForm Model="Manager.EditingUser" OnValidSubmit="Manager.SaveUser">
+                                        <DataAnnotationsValidator />
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <label>Username</label>
+                                                <InputText class="form-control mb-2"
+                                                           @bind-Value="Manager.EditingUser.Username" />
+                                                <ValidationMessage For="@(() => Manager.EditingUser.Username)" />
+                                            </div>
+
+                                            <div class="col-md-3">
+                                                <label>Password</label>
+                                                <InputText class="form-control mb-2"
+                                                           type="password"
+                                                           @bind-Value="Manager.EditingUser.Password" />
+                                                <ValidationMessage For="@(() => Manager.EditingUser.Password)" />
+                                            </div>
+
+                                            <div class="col-md-2">
+                                                <label>Working Number</label>
+                                                <InputNumber class="form-control mb-2"
+                                                             @bind-Value="Manager.EditingUser.WorkingNumber"
+                                                             TValue="int"
+                                                             disabled />
+                                            </div>
+
+                                            <div class="col-md-3">
+                                                <label>Role</label>
+                                                <select class="form-control mb-2"
+                                                        @bind="Manager.EditingUser.Role">
+                                                    <option value="InventoryManager">Inventory Manager</option>
+                                                    <option value="WarehouseWorker">Warehouse Worker</option>
+                                                </select>
+                                            </div>
+
+                                            <div class="col-md-12 text-end">
+                                                <button type="submit" class="btn btn-success me-2">
+                                                    <i class="fas fa-save"></i> Save
+                                                </button>
+                                                <button type="button"
+                                                        class="btn btn-secondary"
+                                                        @onclick="Manager.CancelEdit">
+                                                    <i class="fas fa-times"></i> Cancel
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </EditForm>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+}
+else
+{
+    <p>No users found.</p>
+}

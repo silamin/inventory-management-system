@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+package users;
+
+service UserService {
+  rpc addUser(UserDTO) returns (User);
+  rpc editUser(User) returns (google.protobuf.Empty);
+  rpc deleteUser(User) returns (google.protobuf.Empty);
+  rpc getAllUsers(google.protobuf.Empty) returns (UserList);
+}
+
+message User {
+  string userid = 1;
+  string username = 2;
+  string password = 3;
+  UserRole userRole = 4;
+  bool isActive = 5;
+}
+
+message UserDTO {
+  string userName = 1;
+  string password = 2;
+  UserRole userRole = 3;
+}
+
+message EditResponse {
+  bool success = 1;
+}
+
+message UserDeleteResponse {
+  bool success = 1;
+}
+
+message UserList {
+  repeated User users = 1;
+}
+
+enum UserRole {
+  INVENTORY_MANAGER = 0;
+  WAREHOUSE_WORKER = 1;
+}
+

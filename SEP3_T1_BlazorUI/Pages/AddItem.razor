@@ -1,0 +1,86 @@
+﻿@page "/add-item"
+@attribute [Authorize(Roles = "InventoryManager")]
+
+@using SEP3_T1_BlazorUI.Models;
+@using SEP3_T1_BlazorUI.Application.UseCases;
+
+@inject SEP3_T1_BlazorUI.Application.UseCases.ItemUseCases ItemUseCases
+@inject Blazored.Toast.Services.IToastService ToastService
+
+<PageTitle>Add New Item</PageTitle>
+
+<h1>Add New Item</h1>
+
+<div class="card p-3">
+    <EditForm Model="newItem" OnValidSubmit="AddNewItem">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <!-- Name Input -->
+        <div class="mb-3">
+            <label for="itemName" class="form-label">Name:</label>
+            <InputText id="itemName" @bind-Value="newItem.Name" class="form-control" />
+            <ValidationMessage For="@(() => newItem.Name)" />
+
+        </div>
+
+        <!-- Description Input -->
+        <div class="mb-3">
+            <label for="itemDescription" class="form-label">Description:</label>
+            <InputText id="itemDescription" @bind-Value="newItem.Description" class="form-control" />
+        </div>
+
+        <!-- Quantity Input -->
+        <div class="mb-3">
+            <label for="quantityInStore" class="form-label">Quantity In Store:</label>
+            <InputNumber TValue="int" @bind-Value="newItem.QuantityInStore" class="form-control" min="0" />
+        </div>
+
+        <!-- Submit Button with Loading Spinner -->
+        <button type="submit" class="btn btn-primary w-100" disabled="@isLoading">
+            @if (isLoading)
+            {
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                @:Adding...
+            }
+            else
+            {
+                @:Add Item
+            }
+        </button>
+
+
+    </EditForm>
+</div>
+
+@code {
+    private Item newItem = new Item();
+    private bool isLoading = false;
+
+    private async Task AddNewItem()
+    {
+        isLoading = true;
+
+        try
+        {
+            var existingItem = await ItemUseCases.FindItemByNameAndDescriptionAsync(newItem.Name, newItem.Description);
+            if (existingItem != null)
+            {
+                ToastService.ShowError($"An item with the name '{newItem.Name}' and the same description already exists.");
+                return;
+            }
+
+            await ItemUseCases.AddItemAsync(newItem);
+            ToastService.ShowSuccess($"Item '{newItem.Name}' added successfully!");
+            newItem = new Item();
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError("An error occurred while adding the item.");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}
