@@ -11,19 +11,6 @@
 
 <!-- Filters Section -->
 <div class="d-flex align-items-center justify-content-center mb-3 w-100">
-    <div class="me-4">
-        <select class="form-select"
-                style="display:inline-block; width:fit-content; white-space:nowrap;"
-                @bind="OrderHistoryManager.SelectedStatus"
-                @bind:after="ApplyFilter">
-            <option value="">All Statuses</option>
-            @foreach (OrderStatus status in Enum.GetValues(typeof(OrderStatus)))
-            {
-                <option value="@status">@status</option>
-            }
-        </select>
-    </div>
-
     <div class="me-3">
         <input type="date" class="form-control"
                @bind="OrderHistoryManager.StartDate"
@@ -45,12 +32,28 @@
     </div>
 </div>
 
+<!-- Tab/Toggle Navigation -->
+<div class="d-flex w-100 mb-4">
+    <button class="btn btn-primary flex-fill me-2"
+            @onclick="() => SwitchViewInProgress()"
+            disabled="@IsActiveViewInProgress()">
+        In Progress
+    </button>
+    <button class="btn btn-success flex-fill ms-2"
+            @onclick="() => SwitchViewCompleted()"
+            disabled="@IsActiveViewCompleted()">
+        Completed
+    </button>
+</div>
+
+
 <!-- Grouped Orders By Status -->
 @if (GroupedOrders?.Any() == true)
 {
-    @foreach (var statusGroup in GroupedOrders)
+    var ordersToShow = GroupedOrders.FirstOrDefault(g => g.Key == ActiveView);
+    if (ordersToShow != null)
     {
-        <h2 class="mt-4">@statusGroup.Key</h2>
+        <h2 class="mt-4">@ActiveView</h2>
 
         <table class="table">
             <thead>
@@ -70,7 +73,7 @@
             </thead>
 
             <tbody>
-                @foreach (var order in statusGroup)
+                @foreach (var order in ordersToShow)
                 {
                     <tr>
                         <td>@order.OrderId</td>
@@ -82,9 +85,8 @@
 
                     <tr>
                         <td colspan="5">
-                            @if (order.OrderStatus == OrderStatus.Completed)
+                            @if (ActiveView == OrderStatus.Completed)
                             {
-                                <!-- Horizontal Layout for Completed Orders -->
                                 <div class="d-flex flex-wrap p-2">
                                     @foreach (var item in order.OrderItems)
                                     {
@@ -94,9 +96,8 @@
                                     }
                                 </div>
                             }
-                            else
+                            else if (ActiveView == OrderStatus.InProgress)
                             {
-                                <!-- Table Layout for In Progress Orders -->
                                 <table class="table table-sm table-bordered">
                                     <thead>
                                         <tr>
@@ -125,13 +126,12 @@
             </tbody>
         </table>
 
-        <!-- Pagination Controls -->
         <div class="d-flex justify-content-between align-items-center mt-3">
-            <button class="btn btn-secondary" @onclick="() => PreviousPage(statusGroup.Key)" disabled="@OrderHistoryManager.IsFirstPage(statusGroup.Key)">
+            <button class="btn btn-secondary" @onclick="PreviousPage" disabled="@OrderHistoryManager.IsFirstPage(ActiveView)">
                 <i class="fas fa-arrow-left"></i> Previous
             </button>
-            <span>Page @OrderHistoryManager.GetCurrentPage(statusGroup.Key) of @OrderHistoryManager.GetTotalPages(statusGroup.Key)</span>
-            <button class="btn btn-secondary" @onclick="() => NextPage(statusGroup.Key)" disabled="@OrderHistoryManager.IsLastPage(statusGroup.Key)">
+            <span>Page @OrderHistoryManager.GetCurrentPage(ActiveView) of @OrderHistoryManager.GetTotalPages(ActiveView)</span>
+            <button class="btn btn-secondary" @onclick="NextPage" disabled="@OrderHistoryManager.IsLastPage(ActiveView)">
                 Next <i class="fas fa-arrow-right"></i>
             </button>
         </div>
@@ -144,6 +144,7 @@ else
 
 @code {
     private List<IGrouping<OrderStatus, Order>> GroupedOrders;
+    private OrderStatus ActiveView { get; set; } = OrderStatus.InProgress;
 
     protected override async Task OnInitializedAsync()
     {
@@ -170,15 +171,15 @@ else
         RefreshOrdersView();
     }
 
-    private void PreviousPage(OrderStatus status)
+    private void PreviousPage()
     {
-        OrderHistoryManager.PreviousPage(status);
+        OrderHistoryManager.PreviousPage(ActiveView);
         RefreshOrdersView();
     }
 
-    private void NextPage(OrderStatus status)
+    private void NextPage()
     {
-        OrderHistoryManager.NextPage(status);
+        OrderHistoryManager.NextPage(ActiveView);
         RefreshOrdersView();
     }
 
@@ -192,5 +193,27 @@ else
     {
         OrderHistoryManager.SortByColumn("CreatedAt");
         RefreshOrdersView();
+    }
+
+    private void SwitchViewInProgress()
+    {
+        ActiveView = OrderStatus.InProgress;
+        RefreshOrdersView();
+    }
+
+    private void SwitchViewCompleted()
+    {
+        ActiveView = OrderStatus.Completed;
+        RefreshOrdersView();
+    }
+
+    private bool IsActiveViewInProgress()
+    {
+        return ActiveView == OrderStatus.InProgress;
+    }
+
+    private bool IsActiveViewCompleted()
+    {
+        return ActiveView == OrderStatus.Completed;
     }
 }
