@@ -70,8 +70,8 @@ namespace SEP3_T3_ASP_Core_WebAPI.Data
                     context.SaveChanges();
 
 
-                    /*
-                     * 
+                    
+                     
 
 
                                                      // ----- Step 3: Insert Orders -----
@@ -163,7 +163,7 @@ namespace SEP3_T3_ASP_Core_WebAPI.Data
                                 context.SaveChanges();
 
 
-                     */
+                     
 
 
                 }

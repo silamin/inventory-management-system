@@ -42,17 +42,29 @@ namespace BlazorServerApp.Application.UseCases
             }
         }
 
-        public void DeleteItem(DeleteItem itemToDelete)
+        public async Task DeleteItemAsync(DeleteItem item)
         {
             try
             {
-                var items = _itemRepository.DeleteItemAsync(itemToDelete);
+                Console.WriteLine("Sending DeleteItem request for ItemId: " + item.ItemId);
+
+                // Call the gRPC service
+                await _itemRepository.DeleteItemAsync(item);
+
+                Console.WriteLine($"Successfully deleted item with Id: {item.ItemId}");
             }
             catch (RpcException ex)
             {
-                throw new ApplicationException($"Error deleting item with Id: {itemToDelete.ItemId}", ex);
+                Console.WriteLine($"Error during DeleteItem request for Id: {item.ItemId}. RPC Exception: {ex}");
+                throw new ApplicationException($"Error deleting item with Id: {item.ItemId}", ex);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"An unexpected error occurred while deleting item with Id: {item.ItemId}. Exception: {ex}");
+                throw new ApplicationException($"Unexpected error deleting item with Id: {item.ItemId}", ex);
             }
         }
+
 
 
         public IEnumerable<Item> GetAllItems()

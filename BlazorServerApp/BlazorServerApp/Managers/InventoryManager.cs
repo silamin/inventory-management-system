@@ -1,4 +1,5 @@
 ﻿using BlazorServerApp.Application.UseCases;
+using Grpc.Core;
 using Items;
 using Microsoft.AspNetCore.Components.Authorization;
 using Orders;
@@ -154,13 +155,36 @@ namespace BlazorServerApp.Managers
 
         public async Task DeleteItemAsync(ItemViewModel item)
         {
-            var itemToDelete = new DeleteItem
+            try
             {
-                ItemId = item.Id
-            };
+                var itemToDelete = new DeleteItem
+                {
+                    ItemId = item.Id
+                };
 
-            _itemUseCases.DeleteItem(itemToDelete);
+                // Call the gRPC deleteItem method
+                await _itemUseCases.DeleteItemAsync(itemToDelete);
+
+                // Remove the item from the local _allItems list only if the delete was successful
+                _allItems.RemoveAll(i => i.Id == item.Id);
+
+                // Log success message
+                Console.WriteLine($"Successfully deleted item with Id: {item.Id}");
+            }
+            catch (RpcException ex)
+            {
+                // Handle gRPC exception appropriately (logging, rethrow, etc.)
+                Console.WriteLine($"Error during DeleteItem request for Id: {item.Id}. RPC Exception: {ex}");
+                throw new ApplicationException($"Error deleting item with Id: {item.Id}", ex);
+            }
+            catch (Exception ex)
+            {
+                // Handle any other types of exceptions
+                Console.WriteLine($"An unexpected error occurred while deleting item with Id: {item.Id}. Exception: {ex}");
+                throw new ApplicationException($"Unexpected error deleting item with Id: {item.Id}", ex);
+            }
         }
+
 
         public bool HasSelectedItems => FilterAndSortItems().Any(i => i.IsSelected);
 

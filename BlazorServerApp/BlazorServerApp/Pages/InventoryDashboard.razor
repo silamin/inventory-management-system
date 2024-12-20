@@ -124,22 +124,28 @@
 
     private async Task DeleteItem(ItemViewModel item)
     {
-        item.IsDeleting = true;
+        item.IsDeleting = true; // Show "deleting" status
         try
         {
+            // Call the manager's async delete method
             await Manager.DeleteItemAsync(item);
+
+            // Notify user of successful deletion
             ToastService.ShowSuccess($"Item '{item.Name}' deleted successfully!");
         }
         catch (Exception ex)
         {
+            // If an error occurred, show an error message
             ToastService.ShowError($"Failed to delete item '{item.Name}'. Error: {ex.Message}");
         }
         finally
         {
+            // Reset the item's deletion state and update the UI
             item.IsDeleting = false;
             StateHasChanged();
         }
     }
+
 
     private async Task UpdateItem(ItemViewModel item)
     {
