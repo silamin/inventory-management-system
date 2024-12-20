@@ -28,9 +28,10 @@ namespace BlazorServerApp.Managers
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
 
-        // Pagination
-        public int CurrentPage { get; private set; } = 1;
-        public int PageSize { get; set; } = 4;
+        // Pagination for each status
+        public Dictionary<OrderStatus, int> CurrentPage { get; private set; } = new();
+        public Dictionary<OrderStatus, int> TotalPages { get; private set; } = new();
+        public int PageSize { get; set; } = 3;
 
         // Sorting
         public string SortColumn { get; private set; } = "CreatedAt";
@@ -39,21 +40,22 @@ namespace BlazorServerApp.Managers
         // Cached Orders
         private List<Order> AllOrders = new();
 
+        // Load all orders from the backend
         public async Task LoadAllOrdersAsync()
         {
             AllOrders = (await _orderUseCases.GetAllOrdersAsync()).ToList();
         }
 
-        public void ResetPagination()
+        public void ResetAllPagination()
         {
-            CurrentPage = 1;
+            CurrentPage.Clear();
         }
 
         private IEnumerable<Order> FilterAndSortOrders()
         {
             var orders = AllOrders.AsQueryable();
 
-            // Filters
+            // Apply filters
             if (SelectedStatus.HasValue)
                 orders = orders.Where(o => o.OrderStatus == SelectedStatus.Value);
 
@@ -66,7 +68,7 @@ namespace BlazorServerApp.Managers
             if (EndDate.HasValue)
                 orders = orders.Where(o => o.CreatedAt.ToDateTime() <= EndDate.Value);
 
-            // Sorting
+            // Apply sorting
             return SortColumn switch
             {
                 "OrderId" => Ascending ? orders.OrderBy(o => o.OrderId) : orders.OrderByDescending(o => o.OrderId),
@@ -76,37 +78,72 @@ namespace BlazorServerApp.Managers
             };
         }
 
-        public IEnumerable<Order> PagedItems => FilterAndSortOrders()
-            .Skip((CurrentPage - 1) * PageSize)
-            .Take(PageSize);
-
-        public bool IsFirstPage => CurrentPage == 1;
-        public bool IsLastPage => CurrentPage >= TotalPages;
-
-        public int TotalPages => Math.Max(1, (int)Math.Ceiling(FilterAndSortOrders().Count() / (double)PageSize));
-
-        public void PreviousPage()
+        public IEnumerable<Order> GetPagedOrders()
         {
-            if (!IsFirstPage)
-                CurrentPage--;
+            return AllOrders
+                .GroupBy(o => o.OrderStatus)
+                .SelectMany(g => g.Skip((GetCurrentPage(g.Key) - 1) * PageSize).Take(PageSize));
         }
 
-        public void NextPage()
+        public IEnumerable<Order> GetPagedOrdersByStatus(OrderStatus status)
         {
-            if (!IsLastPage)
-                CurrentPage++;
+            var filteredOrders = FilterAndSortOrders().Where(o => o.OrderStatus == status).ToList();
+            var currentPage = GetCurrentPage(status);
+            return filteredOrders
+                .Skip((currentPage - 1) * PageSize)
+                .Take(PageSize);
         }
+
+        public int GetCurrentPage(OrderStatus status)
+        {
+            if (!CurrentPage.ContainsKey(status))
+                CurrentPage[status] = 1;
+            return CurrentPage[status];
+        }
+
+        public int GetTotalPages(OrderStatus status)
+        {
+            if (!TotalPages.ContainsKey(status))
+            {
+                var totalOrders = FilterAndSortOrders().Where(o => o.OrderStatus == status).Count();
+                TotalPages[status] = Math.Max(1, (int)Math.Ceiling(totalOrders / (double)PageSize));
+            }
+            return TotalPages[status];
+        }
+
+        public void NextPage(OrderStatus status)
+        {
+            var currentPage = GetCurrentPage(status);
+            var totalPages = GetTotalPages(status);
+            if (currentPage < totalPages)
+            {
+                CurrentPage[status] = currentPage + 1;
+            }
+        }
+
+        public void PreviousPage(OrderStatus status)
+        {
+            var currentPage = GetCurrentPage(status);
+            if (currentPage > 1)
+            {
+                CurrentPage[status] = currentPage - 1;
+            }
+        }
+
+        public bool IsFirstPage(OrderStatus status) => GetCurrentPage(status) == 1;
+
+        public bool IsLastPage(OrderStatus status) => GetCurrentPage(status) >= GetTotalPages(status);
 
         public void SortByColumn(string columnName)
         {
             if (SortColumn == columnName)
             {
-                // Toggle direction if same column is clicked again
+                // Toggle sorting direction if the same column is clicked
                 Ascending = !Ascending;
             }
             else
             {
-                // Switch to a new sort column and reset to ascending
+                // Switch to a new sort column and default to ascending
                 SortColumn = columnName;
                 Ascending = true;
             }
@@ -135,7 +172,7 @@ namespace BlazorServerApp.Managers
             SearchQuery = string.Empty;
             StartDate = null;
             EndDate = null;
-            CurrentPage = 1;
+            ResetAllPagination();
         }
     }
 }

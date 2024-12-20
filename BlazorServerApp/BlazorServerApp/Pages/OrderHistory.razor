@@ -11,7 +11,6 @@
 
 <!-- Filters Section -->
 <div class="d-flex align-items-center justify-content-center mb-3 w-100">
-    <!-- Filter by Status -->
     <div class="me-4">
         <select class="form-select"
                 style="display:inline-block; width:fit-content; white-space:nowrap;"
@@ -25,21 +24,18 @@
         </select>
     </div>
 
-    <!-- Filter by Start Date -->
     <div class="me-3">
         <input type="date" class="form-control"
                @bind="OrderHistoryManager.StartDate"
                @bind:after="ApplyFilter" />
     </div>
 
-    <!-- Filter by End Date -->
     <div class="me-3">
         <input type="date" class="form-control"
                @bind="OrderHistoryManager.EndDate"
                @bind:after="ApplyFilter" />
     </div>
 
-    <!-- Search by Order ID -->
     <div class="input-group">
         <input type="text" class="form-control" placeholder="Search by Order ID"
                @bind="OrderHistoryManager.SearchQuery"
@@ -49,95 +45,105 @@
     </div>
 </div>
 
-<!-- Orders Table -->
-@if (PaginatedOrders?.Any() == true)
+<!-- Grouped Orders By Status -->
+@if (GroupedOrders?.Any() == true)
 {
-    <table class="table">
-        <thead>
-            <tr>
-                <th @onclick="() => SortByOrderId()" style="cursor:pointer;">
-                    Order ID
-                    <i class="@OrderHistoryManager.GetSortIcon("OrderId")"></i>
-                </th>
-                <th @onclick="() => SortByCreatedAt()" style="cursor:pointer;">
-                    Order Date
-                    <i class="@OrderHistoryManager.GetSortIcon("CreatedAt")"></i>
-                </th>
-                <th>
-                    Delivery Date
-                </th>
-                <th @onclick="() => SortByStatus()" style="cursor:pointer;">
-                    Status
-                    <i class="@OrderHistoryManager.GetSortIcon("Status")"></i>
-                </th>
-                <th>
-                    Assigned User
-                </th>
-                <th>
-                    Created By
-                </th>
-            </tr>
-        </thead>
+    @foreach (var statusGroup in GroupedOrders)
+    {
+        <h2 class="mt-4">@statusGroup.Key</h2>
 
-        <tbody>
-            @foreach (var order in PaginatedOrders)
-            {
+        <table class="table">
+            <thead>
                 <tr>
-                    <td>@order.OrderId</td> <!-- Order ID -->
-                    <td>@order.CreatedAt.ToDateTime().ToString("g")</td> <!-- Order Date -->
-                    <td>@order.DeliveryDate.ToDateTime().ToString("g")</td> <!-- Delivery Date -->
-                    <td class="@OrderHistoryManager.GetStatusClass(order.OrderStatus)">@order.OrderStatus</td> <!-- Order Status -->
-                    <td>@order.AssignedUser</td> <!-- Assigned User -->
-                    <td>@order.CreatedByUser</td> <!-- Created By User -->
+                    <th @onclick="() => SortByOrderId()" style="cursor:pointer;">
+                        Order ID
+                        <i class="@OrderHistoryManager.GetSortIcon("OrderId")"></i>
+                    </th>
+                    <th @onclick="() => SortByCreatedAt()" style="cursor:pointer;">
+                        Order Date
+                        <i class="@OrderHistoryManager.GetSortIcon("CreatedAt")"></i>
+                    </th>
+                    <th>Delivery Date</th>
+                    <th>Assigned User</th>
+                    <th>Created By</th>
                 </tr>
+            </thead>
 
-                <!-- Display Order Items -->
-                <tr>
-                    <td colspan="6">
-                        <table class="table table-sm table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>Item Name</th>
-                                    <th>Quantity to Pick</th>
-                                    <th>Total Quantity</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var item in order.OrderItems)
-                                {
-                                    <tr>
-                                        <td>@item.ItemName</td> <!-- Item Name -->
-                                        <td>@item.QuantityToPick</td> <!-- Quantity to Pick -->
-                                        <td>@item.TotalQuantity</td> <!-- Total Quantity -->
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+            <tbody>
+                @foreach (var order in statusGroup)
+                {
+                    <tr>
+                        <td>@order.OrderId</td>
+                        <td>@order.CreatedAt.ToDateTime().ToString("g")</td>
+                        <td>@order.DeliveryDate.ToDateTime().ToString("g")</td>
+                        <td>@order.AssignedUser</td>
+                        <td>@order.CreatedByUser</td>
+                    </tr>
+
+                    <tr>
+                        <td colspan="5">
+                            @if (order.OrderStatus == OrderStatus.Completed)
+                            {
+                                <!-- Horizontal Layout for Completed Orders -->
+                                <div class="d-flex flex-wrap p-2">
+                                    @foreach (var item in order.OrderItems)
+                                    {
+                                        <div class="me-3">
+                                            <strong>@item.ItemName</strong>: @item.TotalQuantity
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <!-- Table Layout for In Progress Orders -->
+                                <table class="table table-sm table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Item Name</th>
+                                            <th>Quantity to Pick</th>
+                                            <th>Items Picked</th>
+                                            <th>Total Quantity Ordered</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in order.OrderItems)
+                                        {
+                                            <tr>
+                                                <td>@item.ItemName</td>
+                                                <td>@item.QuantityToPick</td>
+                                                <td>@(item.TotalQuantity - item.QuantityToPick)</td>
+                                                <td>@item.TotalQuantity</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <!-- Pagination Controls -->
+        <div class="d-flex justify-content-between align-items-center mt-3">
+            <button class="btn btn-secondary" @onclick="() => PreviousPage(statusGroup.Key)" disabled="@OrderHistoryManager.IsFirstPage(statusGroup.Key)">
+                <i class="fas fa-arrow-left"></i> Previous
+            </button>
+            <span>Page @OrderHistoryManager.GetCurrentPage(statusGroup.Key) of @OrderHistoryManager.GetTotalPages(statusGroup.Key)</span>
+            <button class="btn btn-secondary" @onclick="() => NextPage(statusGroup.Key)" disabled="@OrderHistoryManager.IsLastPage(statusGroup.Key)">
+                Next <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
+    }
 }
 else
 {
     <p>No orders found for the selected filters.</p>
 }
 
-
-<!-- Pagination Controls -->
-<div class="d-flex justify-content-between align-items-center mt-3">
-    <button class="btn btn-secondary" @onclick="PreviousPage" disabled="@OrderHistoryManager.IsFirstPage">
-        <i class="fas fa-arrow-left"></i> Previous
-        </button>
-    <span>Page @OrderHistoryManager.CurrentPage of @OrderHistoryManager.TotalPages</span>
-        <button class="btn btn-secondary" @onclick="NextPage" disabled="@OrderHistoryManager.IsLastPage">
-            Next <i class="fas fa-arrow-right"></i>
-        </button>
-</div>
-
 @code {
-    private List<Order> PaginatedOrders;
+    private List<IGrouping<OrderStatus, Order>> GroupedOrders;
 
     protected override async Task OnInitializedAsync()
     {
@@ -147,13 +153,14 @@ else
 
     private void RefreshOrdersView()
     {
-        PaginatedOrders = OrderHistoryManager.PagedItems.ToList();
+        var allOrders = OrderHistoryManager.GetPagedOrders();
+        GroupedOrders = allOrders.GroupBy(o => o.OrderStatus).ToList();
         StateHasChanged();
     }
 
     private void ApplyFilter()
     {
-        OrderHistoryManager.ResetPagination();
+        OrderHistoryManager.ResetAllPagination();
         RefreshOrdersView();
     }
 
@@ -163,37 +170,27 @@ else
         RefreshOrdersView();
     }
 
-    private void PreviousPage()
+    private void PreviousPage(OrderStatus status)
     {
-        OrderHistoryManager.PreviousPage();
+        OrderHistoryManager.PreviousPage(status);
         RefreshOrdersView();
     }
 
-    private void NextPage()
+    private void NextPage(OrderStatus status)
     {
-        OrderHistoryManager.NextPage();
+        OrderHistoryManager.NextPage(status);
         RefreshOrdersView();
     }
 
-    private void SortBy(string columnName)
-    {
-        OrderHistoryManager.SortByColumn(columnName);
-        RefreshOrdersView();
-    }
     private void SortByOrderId()
     {
         OrderHistoryManager.SortByColumn("OrderId");
-        RefreshOrdersView();      
+        RefreshOrdersView();
     }
+
     private void SortByCreatedAt()
     {
         OrderHistoryManager.SortByColumn("CreatedAt");
-        RefreshOrdersView();
-    }
-    private void SortByStatus()
-    {
-        
-        OrderHistoryManager.SortByColumn("Status");
         RefreshOrdersView();
     }
 }

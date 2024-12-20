@@ -68,13 +68,7 @@ namespace SEP3_T3_ASP_Core_WebAPI.Data
                     context.Items.AddRange(items);
 
                     context.SaveChanges();
-
-
-                    
-                     
-
-
-                                                     // ----- Step 3: Insert Orders -----
+                    // ----- Step 3: Insert Orders -----
                                 var orders = new List<Order>
                                 {
                                     new Order
@@ -93,7 +87,7 @@ namespace SEP3_T3_ASP_Core_WebAPI.Data
                                     },
                                     new Order
                                     {
-                                        OrderStatus = OrderStatus.IN_PROGRESS,
+                                        OrderStatus = OrderStatus.COMPLETED,
                                         DeliveryDate = DateTime.UtcNow.AddDays(5),
                                         CreatedById = user2.UserId,
                                         CreatedBy = user2,
@@ -108,7 +102,7 @@ namespace SEP3_T3_ASP_Core_WebAPI.Data
                                     },
                                     new Order
                                     {
-                                        OrderStatus = OrderStatus.IN_PROGRESS,
+                                        OrderStatus = OrderStatus.COMPLETED,
                                         DeliveryDate = DateTime.UtcNow.AddDays(3),
                                         CreatedById = user1.UserId,
                                         CreatedBy= user1,
@@ -161,10 +155,6 @@ namespace SEP3_T3_ASP_Core_WebAPI.Data
 
                                 context.Orders.AddRange(orders.GetRange(3, orders.Count - 3));
                                 context.SaveChanges();
-
-
-                     
-
 
                 }
 
