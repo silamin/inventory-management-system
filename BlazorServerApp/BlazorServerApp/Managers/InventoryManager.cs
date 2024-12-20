@@ -1,4 +1,5 @@
 ﻿using BlazorServerApp.Application.UseCases;
+using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Items;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -191,16 +192,16 @@ namespace BlazorServerApp.Managers
         public async Task PlaceOrder()
         {
             var selectedItems = FilterAndSortItems().Where(i => i.IsSelected).ToList();
-            var orderItems = selectedItems.Select(i => new OrderItem
+            var orderItems = selectedItems.Select(i => new CreateOrderItem
             {
                 ItemId = i.Id,
-                QuantityToPick = i.OrderQuantity
+                TotalQuantity = i.OrderQuantity
             }).ToList();
 
-            var orderRequest = new OrderRequest
+            var orderRequest = new CreateOrder
             {
                 OrderItems = { orderItems },
-                UserId = 1,
+                DeliveryDate = Timestamp.FromDateTime(DateTime.UtcNow),
                 CreatedBy = 1
             };
 

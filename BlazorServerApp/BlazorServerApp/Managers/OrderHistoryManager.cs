@@ -30,7 +30,7 @@ namespace BlazorServerApp.Managers
 
         // Pagination
         public int CurrentPage { get; private set; } = 1;
-        public int PageSize { get; set; } = 18;
+        public int PageSize { get; set; } = 4;
 
         // Sorting
         public string SortColumn { get; private set; } = "CreatedAt";

@@ -12,7 +12,7 @@ namespace BlazorServerApp.Application.UseCases
             _orderRepository = orderRepository ?? throw new ArgumentNullException(nameof(orderRepository));
         }
 
-        public async Task<Order> AddOrderAsync(OrderRequest orderRequest)
+        public async Task<bool> AddOrderAsync(CreateOrder orderRequest)
         {
             if (orderRequest == null) throw new ArgumentNullException(nameof(orderRequest));
 
