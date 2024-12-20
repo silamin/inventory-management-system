@@ -1,4 +1,5 @@
 ﻿using BlazorServerApp.Application.Interfaces;
+using Grpc.Core;
 using Users;
 
 namespace BlazorServerApp.Application.UseCases
@@ -12,7 +13,7 @@ namespace BlazorServerApp.Application.UseCases
             _userRepository = userRepository;
         }
 
-        public async Task<IEnumerable<User>> GetAllUsersAsync()
+        public async Task<IEnumerable<GetUser>> GetAllUsersAsync()
         {
             try
             {
@@ -24,7 +25,7 @@ namespace BlazorServerApp.Application.UseCases
             }
         }
 
-        internal async Task DeleteUserAsync(User user)
+        internal async Task DeleteUserAsync(DeleteUser user)
         {
             try
             {
@@ -45,6 +46,17 @@ namespace BlazorServerApp.Application.UseCases
             catch (Exception ex)
             {
                 throw new ApplicationException("Error retrieving users", ex);
+            }
+        }
+        public async Task AddUserAsync(CreateUser newUser)
+        {
+            try
+            {
+                await _userRepository.AddUserAsync(newUser);
+            }
+            catch (RpcException ex)
+            {
+                throw new ApplicationException("Error adding user", ex);
             }
         }
     }

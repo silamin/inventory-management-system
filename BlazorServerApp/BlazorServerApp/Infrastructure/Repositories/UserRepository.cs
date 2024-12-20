@@ -13,12 +13,12 @@ namespace BlazorServerApp.Infrastructure.Repositories
             _client = client;
         }
 
-        public Task<User> AddUserAsync(UserDTO user)
+        public Task<GetUser> AddUserAsync(CreateUser user)
         {
             throw new NotImplementedException();
         }
 
-        public async Task DeleteUserAsync(User user)
+        public async Task DeleteUserAsync(DeleteUser user)
         {
             try
             {
@@ -43,7 +43,7 @@ namespace BlazorServerApp.Infrastructure.Repositories
             }
         }
 
-        public async Task<IEnumerable<User>> GetAllUsersAsync()
+        public async Task<IEnumerable<GetUser>> GetAllUsersAsync()
         {
             Console.WriteLine("[UserRepository] GetAllUsersAsync started...");
 

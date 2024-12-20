@@ -1,54 +1,71 @@
 ﻿@page "/add-item"
 @using Items
 
-@inject BlazorServerApp.Application.UseCases.ItemUseCases  ItemUseCases
+@inject BlazorServerApp.Application.UseCases.ItemUseCases ItemUseCases
 @inject Blazored.Toast.Services.IToastService ToastService
 @inject NavigationManager NavigationManager
 
 <PageTitle>Add New Item</PageTitle>
 
-<h1>Add New Item</h1>
-
-<div class="card p-3">
-    <EditForm Model="newItem" OnValidSubmit="AddNewItem">
-        <DataAnnotationsValidator />
-        <ValidationSummary />
-
-        <!-- Name Input -->
-        <div class="mb-3">
-            <label for="itemName" class="form-label">Name:</label>
-            <InputText id="itemName" @bind-Value="newItem.Name" class="form-control" />
-            <ValidationMessage For="@(() => newItem.Name)" />
-
+<div class="card shadow border rounded-3">
+    <div class="card-header bg-primary bg-gradient text-white d-flex flex-column justify-content-center align-items-center text-center py-4">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-box-open fs-2 me-2"></i>
+            <h3 class="card-title fw-bold mb-0">Add New Item</h3>
         </div>
+        <small class="card-subtitle mt-2 text-white opacity-75">Fill in the details below to add a new item to your inventory</small>
+    </div>
 
-        <!-- Description Input -->
-        <div class="mb-3">
-            <label for="itemDescription" class="form-label">Description:</label>
-            <InputText id="itemDescription" @bind-Value="newItem.Description" class="form-control" />
-        </div>
+    <div class="card-body p-4">
+        <EditForm Model="newItem" OnValidSubmit="AddNewItem">
+            <DataAnnotationsValidator />
+            <ValidationSummary class="alert alert-danger" />
 
-        <!-- Quantity Input -->
-        <div class="mb-3">
-            <label for="quantityInStore" class="form-label">Quantity In Store:</label>
-            <InputNumber TValue="int" @bind-Value="newItem.QuantityInStore" class="form-control" min="0" />
-        </div>
+            <!-- Name Input -->
+            <div class="mb-3">
+                <label for="itemName" class="form-label">Item Name</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light"><i class="fas fa-tag text-muted"></i></span>
+                    <InputText id="itemName" @bind-Value="newItem.Name" class="form-control" placeholder="Enter item name" />
+                </div>
+                <ValidationMessage For="@(() => newItem.Name)" class="text-danger mt-1" />
+            </div>
 
-        <!-- Submit Button with Loading Spinner -->
-        <button type="submit" class="btn btn-primary w-100" disabled="@isLoading">
-            @if (isLoading)
-            {
-                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                @:Adding...
-            }
-            else
-            {
-                @:Add Item
-            }
-        </button>
+            <!-- Description Input -->
+            <div class="mb-3">
+                <label for="itemDescription" class="form-label">Description <i class="fas fa-info-circle text-muted" title="Provide a brief description of the item"></i></label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light"><i class="fas fa-align-left text-muted"></i></span>
+                    <InputTextArea id="itemDescription" @bind-Value="newItem.Description" class="form-control" placeholder="Enter item description" />
+                </div>
+            </div>
 
+            <!-- Quantity Input -->
+            <div class="mb-3">
+                <label for="quantityInStore" class="form-label">Quantity In Store</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light"><i class="fas fa-boxes text-muted"></i></span>
+                    <InputNumber TValue="int" @bind-Value="newItem.QuantityInStore" class="form-control" min="0" placeholder="Enter quantity" />
+                </div>
+                <ValidationMessage For="@(() => newItem.QuantityInStore)" class="text-danger mt-1" />
+            </div>
 
-    </EditForm>
+            <!-- Submit Button with Loading Spinner -->
+            <div class="d-grid">
+                <button type="submit" class="btn btn-primary btn-lg mt-3" disabled="@isLoading">
+                    @if (isLoading)
+                    {
+                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        @:Adding...
+                    }
+                    else
+                    {
+                        <i class="fas fa-plus"></i> @:Add Item
+                    }
+                </button>
+            </div>
+        </EditForm>
+    </div>
 </div>
 
 @code {

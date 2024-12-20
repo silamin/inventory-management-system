@@ -5,40 +5,38 @@ import "google/protobuf/empty.proto";
 package users;
 
 service UserService {
-  rpc addUser(UserDTO) returns (User);
+  rpc addUser(CreateUser) returns (GetUser);
   rpc editUser(User) returns (google.protobuf.Empty);
-  rpc deleteUser(User) returns (google.protobuf.Empty);
+  rpc deleteUser(DeleteUser) returns (google.protobuf.Empty);
   rpc getAllUsers(google.protobuf.Empty) returns (UserList);
 }
-
+message DeleteUser {
+  int32 userId = 1;
+}
 message User {
-  string userid = 1;
+  int32 userId = 1;
   string username = 2;
   string password = 3;
   UserRole userRole = 4;
-  bool isActive = 5;
 }
 
-message UserDTO {
+message CreateUser {
   string userName = 1;
   string password = 2;
   UserRole userRole = 3;
 }
 
-message EditResponse {
-  bool success = 1;
-}
-
-message UserDeleteResponse {
-  bool success = 1;
+message GetUser {
+  int32 userId = 1;
+  string userName = 2;
+  UserRole userRole = 3;
 }
 
 message UserList {
-  repeated User users = 1;
+  repeated GetUser users = 1;
 }
 
 enum UserRole {
   INVENTORY_MANAGER = 0;
   WAREHOUSE_WORKER = 1;
 }
-

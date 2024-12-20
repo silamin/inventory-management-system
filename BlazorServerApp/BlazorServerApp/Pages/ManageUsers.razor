@@ -37,67 +37,63 @@ else if (GroupedUsers != null && GroupedUsers.Any())
     @foreach (var roleGroup in GroupedUsers)
     {
         <h4 class="mt-4">Role: @Manager.HumanizeRole(roleGroup.Key)</h4>
-        <div class="table-responsive">
-            <table class="table table-hover table-bordered">
-                <thead class="table-dark">
-                    <tr>
-                        <th>Username</th>
-                        <th>Password</th>
-                        <th>User ID</th>
-                        <th>Role</th>
-                        <th class="text-center">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var user in roleGroup)
+        <table class="table table-hover table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>Username</th>
+                    <th>Password</th>
+                    <th>User ID</th>
+                    <th>Role</th>
+                    <th class="text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in roleGroup)
+                {
+                    @if (Manager.EditingUser?.UserId == user.UserId)
                     {
-                        @if (Manager.EditingUser?.Userid == user.Userid)
-                        {
-                            <!-- Edit mode -->
-                            <tr>
-                                <td><input class="form-control" @bind="Manager.EditingUser.Username" /></td>
-                                <td><input class="form-control" type="password" @bind="Manager.EditingUser.Password" /></td>
-                                <td>@user.Userid</td> <!-- Non-editable UserID -->
-                                <td>
-                                    <select class="form-select" @bind="Manager.EditingUser.UserRole">
-                                        @foreach (var role in Enum.GetValues(typeof(UserRole)))
-                                        {
-                                            <option value="@role">@Manager.HumanizeRole((UserRole)role)</option>
-                                        }
-                                    </select>
-                                </td>
-                                <td class="text-center">
-                                    <button class="btn btn-sm btn-success me-2" @onclick="SaveUser">
-                                        <i class="fas fa-check"></i> Save
-                                    </button>
-                                    <button class="btn btn-sm btn-secondary" @onclick="Manager.CancelEdit">
-                                        <i class="fas fa-times"></i> Cancel
-                                    </button>
-                                </td>
-                            </tr>
-                        }
-                        else
-                        {
-                            <!-- View mode -->
-                            <tr>
-                                <td>@user.Username</td>
-                                <td>******</td>
-                                <td>@user.Userid</td>
-                                <td>@Manager.HumanizeRole(user.UserRole)</td>
-                                <td class="text-center">
-                                    <button class="btn btn-sm btn-warning me-2" @onclick="() => Manager.ToggleEditUser(user)">
-                                        <i class="fas fa-edit"></i> Edit
-                                    </button>
-                                    <button class="btn btn-sm btn-danger" @onclick="() => Manager.DeleteUserAsync(user)">
-                                        <i class="fas fa-trash-alt"></i> Delete
-                                    </button>
-                                </td>
-                            </tr>
-                        }
+                        <tr>
+                            <td><input class="form-control" @bind="Manager.EditingUser.Username" /></td>
+                            <td><input class="form-control" type="password" @bind="Manager.EditingUser.Password" /></td>
+                            <td>@user.UserId</td>
+                            <td>
+                                <select class="form-select" @bind="Manager.EditingUser.UserRole">
+                                    @foreach (var role in Enum.GetValues(typeof(UserRole)))
+                                    {
+                                        <option value="@role">@Manager.HumanizeRole((UserRole)role)</option>
+                                    }
+                                </select>
+                            </td>
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-success me-2" @onclick="SaveUser">
+                                    <i class="fas fa-check"></i> Save
+                                </button>
+                                <button class="btn btn-sm btn-secondary" @onclick="Manager.CancelEdit">
+                                    <i class="fas fa-times"></i> Cancel
+                                </button>
+                            </td>
+                        </tr>
                     }
-                </tbody>
-            </table>
-        </div>
+                    else
+                    {
+                        <tr>
+                            <td>@user.Username</td>
+                            <td>******</td>
+                            <td>@user.UserId</td>
+                            <td>@Manager.HumanizeRole(user.UserRole)</td>
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-warning me-2" @onclick="() => Manager.ToggleEditUser(user)">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
+                                <button class="btn btn-sm btn-danger" @onclick="() => Manager.DeleteUserAsync(new DeleteUser { UserId = user.UserId })">
+                                    <i class="fas fa-trash-alt"></i> Delete
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
     }
 }
 else
@@ -110,21 +106,13 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        try
-        {
-            GroupedUsers = await Manager.GetGroupedUsersAsync();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[ManageUsers] Error: {ex.Message}");
-        }
+        GroupedUsers = await Manager.GetGroupedUsersAsync();
     }
+
     private async void SaveUser()
     {
         await Manager.SaveUserAsync();
-        // Re-fetch the grouped users after save
         GroupedUsers = await Manager.GetGroupedUsersAsync();
         StateHasChanged();
     }
-
 }

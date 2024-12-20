@@ -12,36 +12,33 @@ namespace BlazorServerApp.Managers
 
         public bool IsLoading { get; private set; } = true;
         public string ErrorMessage { get; private set; } = string.Empty;
-        public List<User> Users { get; private set; } = new();
+        public List<GetUser> Users { get; private set; } = new();
         public string SearchQuery { get; set; } = string.Empty;
-
         public User? EditingUser { get; private set; }
 
         public async Task<IEnumerable<IGrouping<UserRole, User>>> GetGroupedUsersAsync()
         {
             try
             {
-                // Call the RefreshUsersAsync method to ensure users are up-to-date
                 await RefreshUsersAsync();
 
-                Console.WriteLine($"[UserManager] Users loaded: {Users.Count}");
+                var convertedUsers = Users.Select(u => new User
+                {
+                    UserId = u.UserId,
+                    Username = u.UserName,
+                    Password = string.Empty,
+                    UserRole = u.UserRole
+                });
 
-                // Filter and group users
-                var groupedUsers = Users
-                    .Where(u => u.IsActive) 
-                    .Where(u => string.IsNullOrEmpty(SearchQuery) ||
-                                u.Username.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase))
+                var groupedUsers = convertedUsers
+                    .Where(u => string.IsNullOrEmpty(SearchQuery) || u.Username.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase))
                     .GroupBy(u => u.UserRole);
-
-                Console.WriteLine($"[UserManager] Number of groups: {groupedUsers.Count()}");
 
                 return groupedUsers;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($" [UserManager] Error occurred while grouping users: {ex.Message}");
-                Console.WriteLine(ex.StackTrace);
-                return Enumerable.Empty<IGrouping<UserRole, User>>(); // Return an empty result on failure
+                return Enumerable.Empty<IGrouping<UserRole, User>>();
             }
         }
 
@@ -51,24 +48,13 @@ namespace BlazorServerApp.Managers
             _toastService = toastService;
         }
 
-        /// <summary>
-        /// Loads users on initialization
-        /// </summary>
-        public async Task InitializeAsync()
-        {
-            await RefreshUsersAsync();
-        }
-
-        /// <summary>
-        /// Refreshes the user list from the backend
-        /// </summary>
         public async Task RefreshUsersAsync()
         {
             try
             {
                 IsLoading = true;
                 ErrorMessage = string.Empty;
-                Users = (await _userUseCases.GetAllUsersAsync()).Where(u => u.IsActive).ToList(); 
+                Users = (await _userUseCases.GetAllUsersAsync()).ToList();
             }
             catch (Exception ex)
             {
@@ -80,14 +66,8 @@ namespace BlazorServerApp.Managers
             }
         }
 
-        /// <summary>
-        /// Clears the search query
-        /// </summary>
         public void ClearSearch() => SearchQuery = string.Empty;
 
-        /// <summary>
-        /// Converts the Role Enum to a human-readable string
-        /// </summary>
         public string HumanizeRole(UserRole role)
         {
             return role switch
@@ -98,45 +78,36 @@ namespace BlazorServerApp.Managers
             };
         }
 
-        /// <summary>
-        /// Toggles edit mode for the selected user
-        /// </summary>
         public void ToggleEditUser(User user)
         {
-            // If we're already editing this user, exit edit mode
-            if (EditingUser?.Userid == user.Userid)
+            if (EditingUser?.UserId == user.UserId)
             {
                 EditingUser = null;
                 return;
             }
 
-            // Otherwise, set this user as the current editing user
             EditingUser = new User
             {
+                UserId = user.UserId,
                 Username = user.Username,
-                Password = string.Empty, // Don't pre-populate passwords for security
-                Userid = user.Userid,
+                Password = string.Empty,
                 UserRole = user.UserRole
             };
         }
 
-        /// <summary>
-        /// Deletes a user and updates the user list
-        /// </summary>
-        public async Task DeleteUserAsync(User user)
+        public async Task DeleteUserAsync(DeleteUser user)
         {
             try
             {
                 await _userUseCases.DeleteUserAsync(user);
-                Users.Remove(user); // Remove the user from the local list
-                _toastService.ShowSuccess($"User '{user.Username}' was deleted successfully.");
+                Users.RemoveAll(u => u.UserId == user.UserId);
+                _toastService.ShowSuccess($"User with UserId '{user.UserId}' was deleted successfully.");
             }
             catch (Exception ex)
             {
                 _toastService.ShowError("An error occurred while deleting the user: " + ex.Message);
             }
         }
-
 
         public async Task SaveUserAsync()
         {
@@ -146,25 +117,20 @@ namespace BlazorServerApp.Managers
             {
                 await _userUseCases.EditUserAsync(EditingUser);
 
-                // Update the user in the Users list
-                var userIndex = Users.FindIndex(u => u.Userid == EditingUser.Userid);
+                var userIndex = Users.FindIndex(u => u.UserId == EditingUser.UserId);
                 if (userIndex != -1)
                 {
-                    Users[userIndex] = new User
+                    Users[userIndex] = new GetUser
                     {
-                        Username = EditingUser.Username,
-                        Password = EditingUser.Password,
-                        Userid = EditingUser.Userid,
-                        UserRole = EditingUser.UserRole,
-                        IsActive = EditingUser.IsActive
+                        UserId = EditingUser.UserId,
+                        UserName = EditingUser.Username,
+                        UserRole = EditingUser.UserRole
                     };
                 }
 
-                // Re-group users after the edit
                 await GetGroupedUsersAsync();
-
                 _toastService.ShowSuccess("User details updated successfully.");
-                EditingUser = null; // Exit edit mode
+                EditingUser = null;
             }
             catch (Exception ex)
             {
@@ -172,10 +138,6 @@ namespace BlazorServerApp.Managers
             }
         }
 
-
-        /// <summary>
-        /// Cancels edit mode without saving changes
-        /// </summary>
         public void CancelEdit()
         {
             EditingUser = null;
