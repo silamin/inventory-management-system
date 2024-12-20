@@ -1,4 +1,6 @@
 ﻿using BlazorServerApp.Application.Interfaces;
+using Grpc.Core;
+using Items;
 
 namespace BlazorServerApp.Application.UseCases
 {
@@ -11,10 +13,8 @@ namespace BlazorServerApp.Application.UseCases
             _itemRepository = itemRepository ?? throw new ArgumentNullException(nameof(itemRepository));
         }
 
-        public async Task<Item> CreateItemAsync(ItemDTO itemDTO)
+        public async Task<Item> CreateItemAsync(CreateItem itemDTO)
         {
-            if (itemDTO == null) throw new ArgumentNullException(nameof(itemDTO));
-
             try
             {
                 var createdItem = await _itemRepository.CreateItemAsync(itemDTO);
@@ -42,20 +42,18 @@ namespace BlazorServerApp.Application.UseCases
             }
         }
 
-        public async Task DeleteItemAsync(Item item)
+        public void DeleteItem(DeleteItem itemToDelete)
         {
-            if (item == null) throw new ArgumentNullException(nameof(item));
-
             try
             {
-                await _itemRepository.DeleteItemAsync(item);
+                var items = _itemRepository.DeleteItemAsync(itemToDelete);
             }
-            catch (Exception ex)
+            catch (RpcException ex)
             {
-                // Handle exception appropriately (logging, rethrow, etc.)
-                throw new ApplicationException("Error deleting item", ex);
+                throw new ApplicationException($"Error deleting item with Id: {itemToDelete.ItemId}", ex);
             }
         }
+
 
         public IEnumerable<Item> GetAllItems()
         {

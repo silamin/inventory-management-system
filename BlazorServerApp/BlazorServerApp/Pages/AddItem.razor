@@ -1,4 +1,5 @@
 ﻿@page "/add-item"
+@using Items
 
 @inject BlazorServerApp.Application.UseCases.ItemUseCases  ItemUseCases
 @inject Blazored.Toast.Services.IToastService ToastService
@@ -51,7 +52,7 @@
 </div>
 
 @code {
-    private ItemDTO newItem = new ItemDTO();
+    private CreateItem newItem = new CreateItem();
     private bool isLoading = false;
 
     private async Task AddNewItem()

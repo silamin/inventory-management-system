@@ -1,4 +1,5 @@
 ﻿using BlazorServerApp.Application.UseCases;
+using Items;
 using Microsoft.AspNetCore.Components.Authorization;
 using Orders;
 
@@ -153,12 +154,12 @@ namespace BlazorServerApp.Managers
 
         public async Task DeleteItemAsync(ItemViewModel item)
         {
-            var itemToDelete = new Item
+            var itemToDelete = new DeleteItem
             {
                 ItemId = item.Id
             };
 
-            await _itemUseCases.DeleteItemAsync(itemToDelete);
+            _itemUseCases.DeleteItem(itemToDelete);
         }
 
         public bool HasSelectedItems => FilterAndSortItems().Any(i => i.IsSelected);
@@ -168,7 +169,7 @@ namespace BlazorServerApp.Managers
             var selectedItems = FilterAndSortItems().Where(i => i.IsSelected).ToList();
             var orderItems = selectedItems.Select(i => new OrderItem
             {
-                ItemId = int.Parse(i.Id),
+                ItemId = i.Id,
                 QuantityToPick = i.OrderQuantity
             }).ToList();
 
@@ -188,7 +189,7 @@ namespace BlazorServerApp.Managers
 
 public class ItemViewModel
 {
-    public string Id { get; set; }
+    public int Id { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
     public int QuantityInStore { get; set; }

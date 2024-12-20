@@ -6,6 +6,7 @@ using BlazorServerApp.Managers;
 using Microsoft.AspNetCore.Components.Authorization;
 using Orders;
 using Users;
+using Items;
 
 var builder = WebApplication.CreateBuilder(args);
 

@@ -1,14 +1,15 @@
 syntax = "proto3";
 import "google/protobuf/empty.proto";
+package items;
 
-message ItemDTO {
+message CreateItem {
   string name = 1;
   string description = 2;
   int32 quantity_in_store = 3;
 }
 
 message Item {
-  string itemId = 1;
+  int32 itemId = 1;
   string itemName = 2;
   string description = 3;
   int32 quantity_in_store = 4;
@@ -17,13 +18,15 @@ message Item {
 message ItemList {
   repeated Item items = 1;
 }
-
+message DeleteItem {
+  int32 itemId = 1;
+}
 service ItemService {
-  rpc createItem(ItemDTO) returns (Item);
+  rpc createItem(CreateItem) returns (Item);
 
   rpc editItem(Item) returns (google.protobuf.Empty);
 
-  rpc deleteItem(Item) returns (google.protobuf.Empty);
+  rpc deleteItem(DeleteItem) returns (google.protobuf.Empty);
 
   rpc getAllItems(google.protobuf.Empty) returns (ItemList);
 

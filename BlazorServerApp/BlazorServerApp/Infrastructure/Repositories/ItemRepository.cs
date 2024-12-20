@@ -1,5 +1,6 @@
 ﻿using BlazorServerApp.Application.Interfaces;
 using Grpc.Core;
+using Items;
 
 namespace BlazorServerApp.Infrastructure.Repositories
 {
@@ -12,7 +13,7 @@ namespace BlazorServerApp.Infrastructure.Repositories
             _client = client;
         }
 
-        public async Task<Item> CreateItemAsync(ItemDTO itemDTO)
+        public async Task<Item> CreateItemAsync(CreateItem itemDTO)
         {
             try
             {
@@ -37,24 +38,20 @@ namespace BlazorServerApp.Infrastructure.Repositories
             }
         }
 
-        public async Task DeleteItemAsync(Item item)
+        public async Task DeleteItemAsync(DeleteItem itemToDelete)
         {
             try
             {
-                Console.WriteLine("Sending DeleteItem request for ItemId: " + item.ItemId);
 
-                await _client.deleteItemAsync(item);
-
-                // Log success message
-                Console.WriteLine($"Successfully deleted item with Id: {item.ItemId}");
+                // Step 2: Call the gRPC deleteItem method
+                await _client.deleteItemAsync(itemToDelete);
             }
             catch (RpcException ex)
             {
-                // Handle gRPC exception appropriately (logging, rethrow, etc.)
-                Console.WriteLine("Error during DeleteItem request. RPC Exception: " + ex.ToString());
-                throw new ApplicationException("Error deleting item", ex);
+                throw new ApplicationException($"Error deleting item with Id: {itemToDelete.ItemId}", ex);
             }
         }
+
 
         public async Task EditItemAsync(Item item)
         {
