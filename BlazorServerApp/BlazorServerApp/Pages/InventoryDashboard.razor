@@ -136,7 +136,7 @@
         catch (Exception ex)
         {
             // If an error occurred, show an error message
-            ToastService.ShowError($"Failed to delete item '{item.Name}'. Error: {ex.Message}");
+            ToastService.ShowError($"Error: {ex.Message}");
         }
         finally
         {
@@ -156,19 +156,7 @@
         }
         catch (Exception ex)
         {
-            ToastService.ShowError($"Failed to update item '{item.Name}'. Error: {ex.Message}");
-
-            // Re-fetch the items to ensure we have the most up-to-date data
-            try
-            {
-                Manager.RefreshData();
-                StateHasChanged();
-                ToastService.ShowInfo("Inventory has been refreshed to ensure data consistency.");
-            }
-            catch (Exception refreshEx)
-            {
-                ToastService.ShowError($"Failed to refresh inventory. Error: {refreshEx.Message}");
-            }
+            ToastService.ShowError($"Error: {ex.Message}");
         }
     }
 
@@ -200,7 +188,7 @@
         }
         catch (Exception ex)
         {
-            ToastService.ShowError($"Failed to place order. Error: {ex.Message}");
+            ToastService.ShowError($"Error: {ex.Message}");
         }
     }
 }
