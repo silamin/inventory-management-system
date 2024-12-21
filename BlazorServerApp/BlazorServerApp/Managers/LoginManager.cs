@@ -12,7 +12,7 @@ public class LoginManager : INotifyPropertyChanged
     public LoginRequest LoginRequest { get; set; } = new();
 
     // Ensure ErrorMessage is always initialized
-    public string ErrorMessage { get; private set; } = string.Empty;
+    public string ErrorMessage { get; set; } = string.Empty;
 
     private bool _isLoading;
     public bool IsLoading

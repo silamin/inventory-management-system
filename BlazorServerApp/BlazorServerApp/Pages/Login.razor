@@ -56,6 +56,8 @@
                 {
                     settings.Timeout = 5000;
                 });
+                LoginManager.LoginRequest = new LoginRequest();
+                LoginManager.ErrorMessage = string.Empty;
 
                 // Determine the user's role
                 var role = (await LoginManager.GetUserRoleAsync())?.ToUpperInvariant(); // Normalize role to uppercase
