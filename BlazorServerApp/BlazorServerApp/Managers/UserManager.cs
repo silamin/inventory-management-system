@@ -21,13 +21,20 @@ namespace BlazorServerApp.Managers
             _toastService = toastService;
         }
 
-        public async Task RefreshUsersAsync()
+        public async Task RefreshUsersAsync(UserRole role)
         {
             try
             {
                 IsLoading = true;
                 ErrorMessage = string.Empty;
-                Users = (await _userUseCases.GetAllUsersAsync()).ToList();
+
+                var usersByRole = await _userUseCases.GetUsersByRoleAsync(role); // Pass the role here
+                Users = usersByRole.Select(u => new GetUser
+                {
+                    UserId = u.UserId,
+                    UserName = u.UserName,
+                    UserRole = u.UserRole
+                }).ToList();
             }
             catch (Exception ex)
             {
@@ -38,6 +45,7 @@ namespace BlazorServerApp.Managers
                 IsLoading = false;
             }
         }
+
 
         public async Task<List<User>> GetUsersByRoleAsync(UserRole role)
         {
@@ -66,32 +74,6 @@ namespace BlazorServerApp.Managers
             }
         }
 
-        public async Task<IEnumerable<IGrouping<UserRole, User>>> GetGroupedUsersAsync()
-        {
-            try
-            {
-                await RefreshUsersAsync();
-
-                var convertedUsers = Users.Select(u => new User
-                {
-                    UserId = u.UserId,
-                    Username = u.UserName,
-                    Password = string.Empty,
-                    UserRole = u.UserRole
-                });
-
-                var groupedUsers = convertedUsers
-                    .Where(u => string.IsNullOrEmpty(SearchQuery) || u.Username.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase))
-                    .GroupBy(u => u.UserRole);
-
-                return groupedUsers;
-            }
-            catch (Exception ex)
-            {
-                return Enumerable.Empty<IGrouping<UserRole, User>>();
-            }
-        }
-
         public void ClearSearch() => SearchQuery = string.Empty;
 
         public string HumanizeRole(UserRole role)
@@ -104,7 +86,7 @@ namespace BlazorServerApp.Managers
             };
         }
 
-        public void ToggleEditUser(User user)
+        public void ToggleEditUser(GetUser user)
         {
             if (EditingUser?.UserId == user.UserId)
             {
@@ -115,7 +97,7 @@ namespace BlazorServerApp.Managers
             EditingUser = new User
             {
                 UserId = user.UserId,
-                Username = user.Username,
+                Username = user.UserName,
                 Password = string.Empty,
                 UserRole = user.UserRole
             };

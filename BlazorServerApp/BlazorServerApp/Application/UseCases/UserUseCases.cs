@@ -13,18 +13,6 @@ namespace BlazorServerApp.Application.UseCases
             _userRepository = userRepository;
         }
 
-        public async Task<IEnumerable<GetUser>> GetAllUsersAsync()
-        {
-            try
-            {
-                return await _userRepository.GetAllUsersAsync();
-            }
-            catch (Exception ex)
-            {
-                throw new ApplicationException("Error retrieving users", ex);
-            }
-        }
-
         internal async Task DeleteUserAsync(DeleteUser user)
         {
             try

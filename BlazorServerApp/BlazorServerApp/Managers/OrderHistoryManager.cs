@@ -16,7 +16,8 @@ public class OrderHistoryManager
     public DateTime? EndDate { get; set; }
 
     // Pagination
-    public int PageSize { get; set; } = 3;
+    public int InProgressPageSize { get; set; } = 3;
+    public int CompletedPageSize { get; set; } = 7;
     public int InProgressPage { get; private set; } = 1;
     public int CompletedPage { get; private set; } = 1;
 
@@ -24,8 +25,23 @@ public class OrderHistoryManager
     private List<Order> InProgressOrders = new();
     private List<Order> CompletedOrders = new();
 
+    private Action? _stateChangedCallback;
+
+    public bool IsLoading { get; private set; } = true;
+    public void RegisterStateChangeCallback(Action callback)
+    {
+        _stateChangedCallback = callback;
+    }
+    private void NotifyStateChanged()
+    {
+        _stateChangedCallback?.Invoke();
+    }
+
     public async Task LoadOrdersAsync(OrderStatus status)
     {
+        IsLoading = true;
+        NotifyStateChanged();
+
         try
         {
             var response = await _orderUseCases.GetOrdersByStatusAsync(status);
@@ -38,15 +54,17 @@ public class OrderHistoryManager
             {
                 CompletedOrders = response.ToList();
             }
-
-            Console.WriteLine($"Loaded {response.Count()} orders for {status}");
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error loading orders for {status}: {ex.Message}");
         }
+        finally
+        {
+            IsLoading = false;
+            NotifyStateChanged();
+        }
     }
-
 
     public IEnumerable<Order> GetOrdersByStatus(OrderStatus status)
     {
@@ -59,17 +77,19 @@ public class OrderHistoryManager
                 (!StartDate.HasValue || o.CreatedAt.ToDateTime() >= StartDate.Value) &&
                 (!EndDate.HasValue || o.CreatedAt.ToDateTime() <= EndDate.Value));
 
-        // Log the filtered results (for debugging purposes)
-        Console.WriteLine($"Filtered Orders for {status}: {filteredOrders.Count()}");
-
         return filteredOrders.OrderBy(o => o.CreatedAt);
     }
 
-
     public int GetTotalPages(OrderStatus status)
     {
+        var pageSize = GetPageSize(status);
         var orders = status == OrderStatus.InProgress ? InProgressOrders : CompletedOrders;
-        return Math.Max(1, (int)Math.Ceiling(orders.Count / (double)PageSize));
+        return Math.Max(1, (int)Math.Ceiling(orders.Count / (double)pageSize));
+    }
+
+    public int GetPageSize(OrderStatus status)
+    {
+        return status == OrderStatus.InProgress ? InProgressPageSize : CompletedPageSize;
     }
 
     public void NextPage(OrderStatus status)

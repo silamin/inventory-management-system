@@ -4,7 +4,6 @@ namespace BlazorServerApp.Application.Interfaces
 {
     public interface IUserRepository
     {
-        Task<IEnumerable<GetUser>> GetAllUsersAsync();
         Task<IEnumerable<GetUser>> GetUsersAsync(UserRole role);
 
         Task<GetUser>AddUserAsync(CreateUser user);

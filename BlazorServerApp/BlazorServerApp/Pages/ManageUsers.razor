@@ -26,21 +26,27 @@ else if (!string.IsNullOrEmpty(Manager.ErrorMessage))
 }
 else
 {
-    <div class="d-flex justify-content-between mb-4">
-        <button class="btn btn-primary" @onclick="LoadInventoryManagers">Inventory Managers</button>
-        <button class="btn btn-success" @onclick="LoadWarehouseWorkers">Warehouse Workers</button>
+    <div class="d-flex w-100 mb-4">
+        <button class="btn @(ActiveRole == UserRole.InventoryManager ? "btn-primary" : "btn-outline-primary") flex-fill me-2"
+                @onclick="LoadInventoryManagers">
+            Inventory Managers
+        </button>
+        <button class="btn @(ActiveRole == UserRole.WarehouseWorker ? "btn-success" : "btn-outline-success") flex-fill ms-2"
+                @onclick="LoadWarehouseWorkers">
+            Warehouse Workers
+        </button>
     </div>
 
     @if (UsersToShow != null && UsersToShow.Any())
     {
         <h4 class="mt-4">Role: @Manager.HumanizeRole(ActiveRole)</h4>
-        <table class="table table-hover table-bordered">
-            <thead class="table-dark">
-                <tr>
-                    <th>Username</th>
-                    <th>Password</th>
-                    <th>User ID</th>
-                    <th>Role</th>
+        <table class="table table-hover table-bordered table-striped">
+            <thead>
+                <tr class="table-light">
+                    <th class="text-center">Username</th>
+                    <th class="text-center">Password</th>
+                    <th class="text-center">User ID</th>
+                    <th class="text-center">Role</th>
                     <th class="text-center">Actions</th>
                 </tr>
             </thead>
@@ -52,7 +58,7 @@ else
                         <tr>
                             <td><input class="form-control" @bind="Manager.EditingUser.Username" /></td>
                             <td><input class="form-control" type="password" @bind="Manager.EditingUser.Password" /></td>
-                            <td>@user.UserId</td>
+                            <td class="text-center">@user.UserId</td>
                             <td>
                                 <select class="form-select" @bind="Manager.EditingUser.UserRole">
                                     @foreach (var role in Enum.GetValues(typeof(UserRole)))
@@ -74,12 +80,12 @@ else
                     else
                     {
                         <tr>
-                            <td>@user.Username</td>
+                            <td>@user.UserName</td>
                             <td>******</td>
-                            <td>@user.UserId</td>
+                            <td class="text-center">@user.UserId</td>
                             <td>@Manager.HumanizeRole(user.UserRole)</td>
                             <td class="text-center">
-                                <button class="btn btn-sm btn-warning me-2" @onclick="() => Manager.ToggleEditUser(user)">
+                                <button class="btn btn-sm btn-primary me-2" @onclick="() => Manager.ToggleEditUser(user)">
                                     <i class="fas fa-edit"></i> Edit
                                 </button>
                                 <button class="btn btn-sm btn-danger" @onclick="() => Manager.DeleteUserAsync(new DeleteUser { UserId = user.UserId })">
@@ -91,16 +97,32 @@ else
                 }
             </tbody>
         </table>
+
+        <div class="d-flex justify-content-between align-items-center mt-3 mb-4">
+            <button class="btn btn-secondary" @onclick="PreviousPage" disabled="@IsFirstPage()">
+                <i class="fas fa-arrow-left"></i> Previous
+            </button>
+            <span>Page @CurrentPage of @TotalPages</span>
+            <button class="btn btn-secondary" @onclick="NextPage" disabled="@IsLastPage()">
+                Next <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
     }
     else
     {
-        <p>No users found for the selected role.</p>
+        <div class="text-center mt-4">
+            <p class="text-muted">No users found for the selected role.</p>
+        </div>
     }
+
 }
 
 @code {
     private UserRole ActiveRole { get; set; } = UserRole.InventoryManager;
-    private List<User> UsersToShow = new();
+    private List<GetUser> UsersToShow => PaginateUsers();
+    private const int PageSize = 14;
+    private int CurrentPage { get; set; } = 1;
+    private int TotalPages => (int)Math.Ceiling((double)Manager.Users.Count(u => u.UserRole == ActiveRole) / PageSize);
 
     protected override async Task OnInitializedAsync()
     {
@@ -110,21 +132,45 @@ else
     private async Task LoadInventoryManagers()
     {
         ActiveRole = UserRole.InventoryManager;
-        UsersToShow = await Manager.GetUsersByRoleAsync(ActiveRole);
+        CurrentPage = 1;
+        await Manager.RefreshUsersAsync(ActiveRole);
         StateHasChanged();
     }
 
     private async Task LoadWarehouseWorkers()
     {
         ActiveRole = UserRole.WarehouseWorker;
-        UsersToShow = await Manager.GetUsersByRoleAsync(ActiveRole);
+        CurrentPage = 1;
+        await Manager.RefreshUsersAsync(ActiveRole);
         StateHasChanged();
     }
+
+    private List<GetUser> PaginateUsers()
+    {
+        return Manager.Users
+            .Where(u => u.UserRole == ActiveRole)
+            .Skip((CurrentPage - 1) * PageSize)
+            .Take(PageSize)
+            .ToList();
+    }
+
+    private void NextPage()
+    {
+        if (CurrentPage < TotalPages) CurrentPage++;
+    }
+
+    private void PreviousPage()
+    {
+        if (CurrentPage > 1) CurrentPage--;
+    }
+
+    private bool IsFirstPage() => CurrentPage == 1;
+    private bool IsLastPage() => CurrentPage == TotalPages;
 
     private async void SaveUser()
     {
         await Manager.SaveUserAsync();
-        UsersToShow = await Manager.GetUsersByRoleAsync(ActiveRole);
         StateHasChanged();
     }
+
 }

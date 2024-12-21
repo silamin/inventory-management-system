@@ -43,21 +43,6 @@ namespace BlazorServerApp.Infrastructure.Repositories
             }
         }
 
-        public async Task<IEnumerable<GetUser>> GetAllUsersAsync()
-        {
-            Console.WriteLine("[UserRepository] GetAllUsersAsync started...");
-
-            try
-            {
-                var response = await _client.getAllUsersAsync(new Google.Protobuf.WellKnownTypes.Empty());
-                return response.Users;
-            }
-            catch (RpcException ex)
-            {
-                throw new ApplicationException("Error retrieving all users", ex);
-            }
-        }
-
         public async Task<IEnumerable<GetUser>> GetUsersAsync(UserRole role)
         {
             try

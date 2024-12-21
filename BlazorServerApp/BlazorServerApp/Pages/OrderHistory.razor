@@ -10,129 +10,141 @@
 
 <h1 class="text-center">Order History</h1>
 
-<!-- Filters Section -->
-<div class="d-flex align-items-center justify-content-center mb-3 w-100">
-    <div class="me-3">
-        <input type="date" class="form-control"
-               @bind="OrderHistoryManager.StartDate"
-               @bind:after="ApplyFilter" />
-    </div>
-    <div class="me-3">
-        <input type="date" class="form-control"
-               @bind="OrderHistoryManager.EndDate"
-               @bind:after="ApplyFilter" />
-    </div>
-    <div class="input-group">
-        <input type="text" class="form-control" placeholder="Search by Order ID"
-               @bind="OrderHistoryManager.SearchQuery"
-               @bind:event="oninput"
-               @bind:after="ApplyFilter" />
-        <button class="btn btn-outline-secondary" @onclick="ClearFilters" type="button">Clear</button>
-    </div>
-</div>
-
-<!-- Tab/Toggle Navigation -->
-<div class="d-flex w-100 mb-4">
-    <button class="btn btn-primary flex-fill me-2"
-            @onclick="SwitchViewInProgress"
-            disabled="@IsActiveViewInProgress()">
-        In Progress
-    </button>
-    <button class="btn btn-success flex-fill ms-2"
-            @onclick="SwitchViewCompleted"
-            disabled="@IsActiveViewCompleted()">
-        Completed
-    </button>
-</div>
-
-<!-- Orders Table -->
-@if (OrdersToShow.Any())
+@if (OrderHistoryManager.IsLoading)
 {
-    <h2 class="mt-4">@ActiveView</h2>
-
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Order ID</th>
-                <th>Order Date</th>
-                <th>Delivery Date</th>
-                <th>Assigned User</th>
-                <th>Created By</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var order in OrdersToShow)
-            {
-                <tr>
-                    <td>@order.OrderId</td>
-                    <td>@order.CreatedAt.ToDateTime().ToString("g")</td>
-                    <td>@order.DeliveryDate.ToDateTime().ToString("g")</td>
-                    <td>@order.AssignedUser</td>
-                    <td>@order.CreatedByUser</td>
-                </tr>
-                @if (ActiveView == OrderStatus.Completed)
-                {
-                    <tr>
-                        <td colspan="5">
-                            <div class="d-flex flex-wrap p-2">
-                                @foreach (var item in order.OrderItems)
-                                {
-                                    <div class="me-3">
-                                        <strong>@item.ItemName</strong>:
-                                        Picked @item.QuantityToPick / Total @item.TotalQuantity
-                                    </div>
-                                }
-                            </div>
-                        </td>
-                    </tr>
-                }
-                else if (ActiveView == OrderStatus.InProgress)
-                {
-                    <tr>
-                        <td colspan="5">
-                            <table class="table table-sm table-bordered">
-                                <thead>
-                                    <tr>
-                                        <th>Item Name</th>
-                                        <th>Quantity to Pick</th>
-                                        <th>Items Picked</th>
-                                        <th>Total Quantity Ordered</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var item in order.OrderItems)
-                                    {
-                                        <tr>
-                                            <td>@item.ItemName</td>
-                                            <td>@item.QuantityToPick</td>
-                                            <td>@(item.TotalQuantity - item.QuantityToPick)</td>
-                                            <td>@item.TotalQuantity</td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
-                        </td>
-                    </tr>
-                }
-            }
-        </tbody>
-    </table>
-
-    <!-- Pagination -->
-    <div class="d-flex justify-content-between align-items-center mt-3">
-        <button class="btn btn-secondary" @onclick="PreviousPage" disabled="@IsFirstPage()">
-            <i class="fas fa-arrow-left"></i> Previous
-        </button>
-        <span>Page @GetCurrentPage() of @OrderHistoryManager.GetTotalPages(ActiveView)</span>
-        <button class="btn btn-secondary" @onclick="NextPage" disabled="@IsLastPage()">
-            Next <i class="fas fa-arrow-right"></i>
-        </button>
+    <div class="text-center my-4">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p>Loading orders, please wait...</p>
     </div>
 }
 else
 {
-    <p>No orders found for the selected filters.</p>
+    <!-- Filters Section -->
+    <div class="d-flex align-items-center justify-content-center mb-3 w-100">
+        <div class="me-3">
+            <input type="date" class="form-control"
+                   @bind="OrderHistoryManager.StartDate"
+                   @bind:after="ApplyFilter" />
+        </div>
+        <div class="me-3">
+            <input type="date" class="form-control"
+                   @bind="OrderHistoryManager.EndDate"
+                   @bind:after="ApplyFilter" />
+        </div>
+        <div class="input-group">
+            <input type="text" class="form-control" placeholder="Search by Order ID"
+                   @bind="OrderHistoryManager.SearchQuery"
+                   @bind:event="oninput"
+                   @bind:after="ApplyFilter" />
+            <button class="btn btn-outline-secondary" @onclick="ClearFilters" type="button">Clear</button>
+        </div>
+    </div>
+
+    <div class="d-flex w-100 mb-4">
+        <button class="btn @(IsActiveViewInProgress() ? "btn-primary" : "btn-outline-primary") flex-fill me-2"
+                @onclick="SwitchViewInProgress">
+            In Progress
+        </button>
+        <button class="btn @(IsActiveViewCompleted() ? "btn-success" : "btn-outline-success") flex-fill ms-2"
+                @onclick="SwitchViewCompleted">
+            Completed
+        </button>
+    </div>
+
+
+    <!-- Orders Table -->
+    @if (OrdersToShow.Any())
+    {
+        <h2 class="mt-4">@ActiveView</h2>
+
+        <table class="table table-hover table-bordered table-striped">
+            <thead>
+                <tr class="table-light">
+                    <th class="text-center">Order ID</th>
+                    <th class="text-center">Order Date</th>
+                    <th class="text-center">Delivery Date</th>
+                    <th class="text-center">Assigned User</th>
+                    <th class="text-center">Created By</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var order in OrdersToShow)
+                {
+                    <tr>
+                        <td class="text-center">@order.OrderId</td>
+                        <td class="text-center">@order.CreatedAt.ToDateTime().ToString("g")</td>
+                        <td class="text-center">@order.DeliveryDate.ToDateTime().ToString("g")</td>
+                        <td class="text-center">@order.AssignedUser</td>
+                        <td class="text-center">@order.CreatedByUser</td>
+                    </tr>
+                    @if (ActiveView == OrderStatus.Completed)
+                    {
+                        <tr>
+                            <td colspan="5">
+                                <div class="d-flex flex-wrap p-2">
+                                    @foreach (var item in order.OrderItems)
+                                    {
+                                        <div class="me-3">
+                                            <strong>@item.ItemName</strong>:
+                                            Total @item.TotalQuantity
+                                        </div>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    else if (ActiveView == OrderStatus.InProgress)
+                    {
+                        <tr>
+                            <td colspan="5">
+                                <table class="table table-sm table-bordered">
+                                    <thead>
+                                        <tr class="table-light">
+                                            <th class="text-center">Item Name</th>
+                                            <th class="text-center">Quantity to Pick</th>
+                                            <th class="text-center">Items Picked</th>
+                                            <th class="text-center">Total Quantity Ordered</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in order.OrderItems)
+                                        {
+                                            <tr>
+                                                <td class="text-center">@item.ItemName</td>
+                                                <td class="text-center">@item.QuantityToPick</td>
+                                                <td class="text-center">@(item.TotalQuantity - item.QuantityToPick)</td>
+                                                <td class="text-center">@item.TotalQuantity</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+
+
+        <!-- Pagination -->
+        <div class="d-flex justify-content-between align-items-center mt-3 mb-4">
+            <button class="btn btn-secondary" @onclick="PreviousPage" disabled="@IsFirstPage()">
+                <i class="fas fa-arrow-left"></i> Previous
+            </button>
+            <span>Page @GetCurrentPage() of @OrderHistoryManager.GetTotalPages(ActiveView)</span>
+            <button class="btn btn-secondary" @onclick="NextPage" disabled="@IsLastPage()">
+                Next <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
+    }
+    else
+    {
+        <p>No orders found for the selected filters.</p>
+    }
 }
+
 
 @code {
     private OrderStatus ActiveView { get; set; } = OrderStatus.InProgress;
@@ -140,6 +152,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        OrderHistoryManager.RegisterStateChangeCallback(StateHasChanged);
         await LoadOrdersAsync();
     }
 
@@ -151,11 +164,11 @@ else
 
     private void RefreshOrdersView()
     {
-        OrdersToShow = OrderHistoryManager.GetOrdersByStatus(ActiveView);
-        Console.WriteLine($"Displaying {OrdersToShow.Count()} orders for view {ActiveView}");
+        OrdersToShow = OrderHistoryManager.GetOrdersByStatus(ActiveView)
+            .Skip((GetCurrentPage() - 1) * OrderHistoryManager.GetPageSize(ActiveView))
+            .Take(OrderHistoryManager.GetPageSize(ActiveView));
         StateHasChanged();
     }
-
 
     private void ApplyFilter()
     {
@@ -180,25 +193,21 @@ else
         RefreshOrdersView();
     }
 
-    private async void SwitchViewCompleted()
+    private async Task SwitchViewCompleted()
     {
         ActiveView = OrderStatus.Completed;
         await LoadOrdersAsync();
-        RefreshOrdersView();
     }
 
-    private async void SwitchViewInProgress()
+    private async Task SwitchViewInProgress()
     {
         ActiveView = OrderStatus.InProgress;
         await LoadOrdersAsync();
-        RefreshOrdersView();
     }
-
-
-    private bool IsActiveViewInProgress() => ActiveView == OrderStatus.InProgress;
-    private bool IsActiveViewCompleted() => ActiveView == OrderStatus.Completed;
 
     private int GetCurrentPage() => ActiveView == OrderStatus.InProgress ? OrderHistoryManager.InProgressPage : OrderHistoryManager.CompletedPage;
     private bool IsFirstPage() => GetCurrentPage() == 1;
     private bool IsLastPage() => GetCurrentPage() >= OrderHistoryManager.GetTotalPages(ActiveView);
+    private bool IsActiveViewInProgress() => ActiveView == OrderStatus.InProgress;
+    private bool IsActiveViewCompleted() => ActiveView == OrderStatus.Completed;
 }

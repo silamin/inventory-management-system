@@ -8,7 +8,6 @@ service UserService {
   rpc addUser(CreateUser) returns (GetUser);
   rpc editUser(User) returns (google.protobuf.Empty);
   rpc deleteUser(DeleteUser) returns (google.protobuf.Empty);
-  rpc getAllUsers(google.protobuf.Empty) returns (UserList);
   rpc getUsers(Role) returns (UserList);
 
 }
