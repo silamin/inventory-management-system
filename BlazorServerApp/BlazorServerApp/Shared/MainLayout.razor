@@ -5,7 +5,7 @@
 
 <CascadingAuthenticationState>
     <div class="page">
-        @if (IsAuthenticated)
+        @if (ShowNavMenu)
         {
             <div class="sidebar">
                 <NavMenu />
@@ -23,31 +23,33 @@
 <BlazoredToasts />
 
 @code {
-    private bool IsAuthenticated = false;
+    private bool ShowNavMenu = false;
 
     protected override async Task OnInitializedAsync()
     {
         // Subscribe to AuthenticationState changes
         AuthenticationStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
 
-        // Initial check for user's authenticated state
-        await CheckAuthentication();
+        // Initial check for user's authentication and role
+        await CheckAuthenticationAndRole();
     }
 
     private async void OnAuthenticationStateChanged(Task<AuthenticationState> task)
     {
-        await CheckAuthentication();
+        await CheckAuthenticationAndRole();
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task CheckAuthentication()
+    private async Task CheckAuthenticationAndRole()
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
 
-        IsAuthenticated = user.Identity != null && user.Identity.IsAuthenticated;
+        // Check if user is authenticated and has the required role
+        ShowNavMenu = user.Identity != null && user.Identity.IsAuthenticated &&
+                      user.IsInRole("INVENTORY_MANAGER");
 
-        // Update Blazor's state to reflect the new UI
+        // Update UI state
         await InvokeAsync(StateHasChanged);
     }
 

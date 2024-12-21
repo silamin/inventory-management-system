@@ -1,10 +1,344 @@
 ﻿@page "/pick-up"
 @attribute [Authorize(Roles = "WAREHOUSE_WORKER")]
 
-<h1 class="text-center">Pick-Up</h1>
-<p>Welcome to the pick-up management page. Here, you can manage and process items for pick-up.</p>
+<PageTitle>Pick-Up Management</PageTitle>
 
-<!-- Add your content specific to pick-up operations here -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="text-dark fw-bold">Pick-Up Management</h1>
+    <button class="btn btn-danger" @onclick="Logout">
+        <i class="fas fa-sign-out-alt"></i> Logout
+    </button>
+</div>
+
+<p class="text-center text-muted">Manage orders and items for pick-up efficiently.</p>
+
+@if (IsLoading)
+{
+    <div class="text-center my-4">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p>Loading orders, please wait...</p>
+    </div>
+}
+else
+{
+    <!-- Table Switcher -->
+    <div class="d-flex w-100 mb-4">
+        <button class="btn @(ActiveView == "Unassigned" ? "btn-danger" : "btn-outline-danger") flex-fill me-2"
+                @onclick="ShowUnassignedOrders">
+            Unassigned Orders
+        </button>
+        <button class="btn @(ActiveView == "Assigned" ? "btn-success" : "btn-outline-success") flex-fill mx-2"
+                @onclick="ShowAssignedOrders">
+            Assigned Orders
+        </button>
+        <button class="btn @(ActiveView == "Completed" ? "btn-secondary" : "btn-outline-secondary") flex-fill ms-2"
+                @onclick="ShowCompletedOrders">
+            Completed Orders
+        </button>
+    </div>
+
+    <!-- Conditional Rendering of Tables -->
+    @if (ActiveView == "Unassigned")
+    {
+        <h3 class="mt-4 text-danger">Unassigned Orders</h3>
+        <table class="table table-bordered table-hover">
+            <thead class="table-danger">
+                <tr>
+                    <th class="text-center">Order ID</th>
+                    <th class="text-center">Delivery Date</th>
+                    <th class="text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var order in UnassignedOrders)
+                {
+                    <tr>
+                        <td class="text-center">@order.OrderId</td>
+                        <td class="text-center">@order.DeliveryDate.ToShortDateString()</td>
+                        <td class="text-center">
+                            <button class="btn btn-primary btn-sm me-2" @onclick="() => ToggleOrderDetails(order.OrderId, true)">View Details</button>
+                            <button class="btn btn-success btn-sm" @onclick="() => AssignOrder(order)">Assign to Me</button>
+                        </td>
+                    </tr>
+
+                    @if (SelectedOrder?.OrderId == order.OrderId && ViewingUnassignedDetails)
+                    {
+                        <tr>
+                            <td colspan="3">
+                                <div class="mt-2">
+                                    <h5>Order Details</h5>
+                                    <p>Delivery Date: @SelectedOrder.DeliveryDate.ToShortDateString()</p>
+                                    <table class="table table-sm table-bordered mt-2">
+                                        <thead>
+                                            <tr class="table-light">
+                                                <th>Item Name</th>
+                                                <th class="text-center">Quantity</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var item in SelectedOrder.Items)
+                                            {
+                                                <tr>
+                                                    <td>@item.ItemName</td>
+                                                    <td class="text-center">@item.QuantityToPick</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    }
+    else if (ActiveView == "Assigned")
+    {
+        <h3 class="mt-4 text-success">Assigned Orders</h3>
+        <table class="table table-bordered table-hover">
+            <thead class="table-success">
+                <tr>
+                    <th class="text-center">Order ID</th>
+                    <th class="text-center">Delivery Date</th>
+                    <th class="text-center">Status</th>
+                    <th class="text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var order in Orders)
+                {
+                    <tr>
+                        <td class="text-center">@order.OrderId</td>
+                        <td class="text-center">@order.DeliveryDate.ToShortDateString()</td>
+                        <td class="text-center">@order.Status</td>
+                        <td class="text-center">
+                            <button class="btn btn-primary btn-sm" @onclick="() => ToggleOrderDetails(order.OrderId, false)">View Details</button>
+                        </td>
+                    </tr>
+
+                    @if (SelectedOrder?.OrderId == order.OrderId && !ViewingUnassignedDetails)
+                    {
+                        <tr>
+                            <td colspan="4">
+                                <div class="mt-2">
+                                    <h5>Order Details</h5>
+                                    <p>Delivery Date: @SelectedOrder.DeliveryDate.ToShortDateString()</p>
+                                    <table class="table table-sm table-bordered mt-2">
+                                        <thead>
+                                            <tr class="table-light">
+                                                <th>Item Name</th>
+                                                <th class="text-center">Quantity to Pick</th>
+                                                <th class="text-center">Picked</th>
+                                                <th class="text-center">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var item in SelectedOrder.Items)
+                                            {
+                                                <tr>
+                                                    <td>@item.ItemName</td>
+                                                    <td class="text-center">@item.QuantityToPick</td>
+                                                    <td class="text-center">@item.PickedQuantity</td>
+                                                    <td class="text-center">
+                                                        <button class="btn btn-success btn-sm" @onclick="() => PickupItem(item)">Mark Picked</button>
+                                                        <button class="btn btn-warning btn-sm" @onclick="() => RevertPickupItem(item)" disabled="@(item.PickedQuantity == 0)">Revert</button>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                    <div class="text-center mt-4">
+                                        <button class="btn btn-success" @onclick="CompleteOrder" disabled="@(!CanCompleteOrder())">Complete Order</button>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    }
+    else if (ActiveView == "Completed")
+    {
+        <h3 class="mt-4 text-secondary">Completed Orders</h3>
+        <table class="table table-bordered table-hover">
+            <thead class="table-secondary">
+                <tr>
+                    <th class="text-center">Order ID</th>
+                    <th class="text-center">Delivery Date</th>
+                    <th class="text-center">Completion Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var order in CompletedOrders)
+                {
+                    <tr>
+                        <td class="text-center">@order.OrderId</td>
+                        <td class="text-center">@order.DeliveryDate.ToShortDateString()</td>
+                        <td class="text-center">@order.CompletionDate?.ToShortDateString()</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+}
+
 @code {
-    // Add any page-specific code here
+    private bool IsLoading { get; set; } = false;
+    private string ActiveView { get; set; } = "Unassigned"; // Default view
+    private bool ViewingUnassignedDetails { get; set; } = false; // Tracks if viewing unassigned details
+    private List<Order> Orders = new(); // Assigned orders
+    private List<Order> UnassignedOrders = new(); // Unassigned orders
+    private List<Order> CompletedOrders = new(); // Completed orders
+    private Order? SelectedOrder;
+
+    protected override void OnInitialized()
+    {
+        LoadMockData();
+    }
+
+    private void LoadMockData()
+    {
+        IsLoading = true;
+
+        // Mock data
+        UnassignedOrders = new List<Order>
+        {
+            new Order
+            {
+                OrderId = 3,
+                DeliveryDate = DateTime.Now.AddDays(7),
+                Items = new List<OrderItem>
+                {
+                    new OrderItem { ItemName = "Item A", QuantityToPick = 10 },
+                    new OrderItem { ItemName = "Item B", QuantityToPick = 5 }
+                }
+            },
+            new Order
+            {
+                OrderId = 4,
+                DeliveryDate = DateTime.Now.AddDays(10),
+                Items = new List<OrderItem>
+                {
+                    new OrderItem { ItemName = "Item C", QuantityToPick = 7 },
+                    new OrderItem { ItemName = "Item D", QuantityToPick = 3 }
+                }
+            }
+        };
+
+        Orders = new List<Order>
+        {
+            new Order
+            {
+                OrderId = 1,
+                DeliveryDate = DateTime.Now.AddDays(3),
+                Status = "In Progress",
+                Items = new List<OrderItem>
+                {
+                    new OrderItem { ItemName = "Item 1", QuantityToPick = 5, PickedQuantity = 0 },
+                    new OrderItem { ItemName = "Item 2", QuantityToPick = 3, PickedQuantity = 2 }
+                }
+            },
+            new Order
+            {
+                OrderId = 2,
+                DeliveryDate = DateTime.Now.AddDays(5),
+                Status = "In Progress",
+                Items = new List<OrderItem>
+                {
+                    new OrderItem { ItemName = "Item 3", QuantityToPick = 4, PickedQuantity = 4 },
+                    new OrderItem { ItemName = "Item 4", QuantityToPick = 2, PickedQuantity = 1 }
+                }
+            }
+        };
+
+        CompletedOrders = new List<Order>
+        {
+            new Order { OrderId = 5, DeliveryDate = DateTime.Now.AddDays(-2), CompletionDate = DateTime.Now.AddDays(-1) },
+            new Order { OrderId = 6, DeliveryDate = DateTime.Now.AddDays(-1), CompletionDate = DateTime.Now }
+        };
+
+        IsLoading = false;
+    }
+
+    private void ShowUnassignedOrders() => ActiveView = "Unassigned";
+    private void ShowAssignedOrders() => ActiveView = "Assigned";
+    private void ShowCompletedOrders() => ActiveView = "Completed";
+
+    private void AssignOrder(Order order)
+    {
+        UnassignedOrders.Remove(order);
+        Orders.Add(order);
+        order.Status = "In Progress";
+    }
+
+    private void ToggleOrderDetails(int orderId, bool isUnassigned)
+    {
+        if (SelectedOrder?.OrderId == orderId)
+        {
+            SelectedOrder = null;
+        }
+        else
+        {
+            SelectedOrder = (isUnassigned ? UnassignedOrders : Orders).FirstOrDefault(o => o.OrderId == orderId);
+            ViewingUnassignedDetails = isUnassigned;
+        }
+    }
+
+    private void PickupItem(OrderItem item)
+    {
+        if (item.PickedQuantity < item.QuantityToPick)
+        {
+            item.PickedQuantity++;
+        }
+    }
+
+    private void RevertPickupItem(OrderItem item)
+    {
+        if (item.PickedQuantity > 0)
+        {
+            item.PickedQuantity--;
+        }
+    }
+
+    private bool CanCompleteOrder()
+    {
+        return SelectedOrder?.Items.All(i => i.PickedQuantity == i.QuantityToPick) ?? false;
+    }
+
+    private void CompleteOrder()
+    {
+        if (SelectedOrder != null)
+        {
+            SelectedOrder.Status = "Completed";
+            SelectedOrder.CompletionDate = DateTime.Now;
+            CompletedOrders.Add(SelectedOrder);
+            Orders.Remove(SelectedOrder);
+            SelectedOrder = null;
+        }
+    }
+
+    private void Logout()
+    {
+        Console.WriteLine("Logged out successfully!");
+    }
+
+    private class Order
+    {
+        public int OrderId { get; set; }
+        public DateTime DeliveryDate { get; set; }
+        public string Status { get; set; } = string.Empty;
+        public List<OrderItem> Items { get; set; } = new();
+        public DateTime? CompletionDate { get; set; }
+    }
+
+    private class OrderItem
+    {
+        public string ItemName { get; set; } = string.Empty;
+        public int QuantityToPick { get; set; }
+        public int PickedQuantity { get; set; }
+    }
 }
