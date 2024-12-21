@@ -21,6 +21,10 @@ public class OrderHistoryManager
     public int InProgressPage { get; private set; } = 1;
     public int CompletedPage { get; private set; } = 1;
 
+    // Sorting
+    public string SortColumn { get; private set; } = "CreatedAt"; // Default sort column
+    public bool Ascending { get; private set; } = true;
+
     // Cached Orders
     private List<Order> InProgressOrders = new();
     private List<Order> CompletedOrders = new();
@@ -77,7 +81,34 @@ public class OrderHistoryManager
                 (!StartDate.HasValue || o.CreatedAt.ToDateTime() >= StartDate.Value) &&
                 (!EndDate.HasValue || o.CreatedAt.ToDateTime() <= EndDate.Value));
 
-        return filteredOrders.OrderBy(o => o.CreatedAt);
+        // Sort orders based on the selected column and direction
+        return SortOrders(filteredOrders);
+    }
+
+    private IEnumerable<Order> SortOrders(IEnumerable<Order> orders)
+    {
+        return SortColumn switch
+        {
+            "OrderId" => Ascending ? orders.OrderBy(o => o.OrderId) : orders.OrderByDescending(o => o.OrderId),
+            "OrderDate" => Ascending ? orders.OrderBy(o => o.CreatedAt) : orders.OrderByDescending(o => o.CreatedAt),
+            "DeliveryDate" => Ascending ? orders.OrderBy(o => o.DeliveryDate) : orders.OrderByDescending(o => o.DeliveryDate),
+            "AssignedUser" => Ascending ? orders.OrderBy(o => o.AssignedUser) : orders.OrderByDescending(o => o.AssignedUser),
+            "CreatedBy" => Ascending ? orders.OrderBy(o => o.CreatedByUser) : orders.OrderByDescending(o => o.CreatedByUser),
+            _ => orders
+        };
+    }
+
+    public void SetSorting(string column)
+    {
+        if (SortColumn == column)
+        {
+            Ascending = !Ascending; // Toggle sorting direction
+        }
+        else
+        {
+            SortColumn = column;
+            Ascending = true; // Default to ascending when switching columns
+        }
     }
 
     public int GetTotalPages(OrderStatus status)

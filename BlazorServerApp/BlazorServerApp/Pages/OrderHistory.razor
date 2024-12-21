@@ -53,7 +53,6 @@ else
         </button>
     </div>
 
-
     <!-- Orders Table -->
     @if (OrdersToShow.Any())
     {
@@ -62,11 +61,21 @@ else
         <table class="table table-hover table-bordered table-striped">
             <thead>
                 <tr class="table-light">
-                    <th class="text-center">Order ID</th>
-                    <th class="text-center">Order Date</th>
-                    <th class="text-center">Delivery Date</th>
-                    <th class="text-center">Assigned User</th>
-                    <th class="text-center">Created By</th>
+                    <th class="text-center" @onclick="() => ApplySortinBygOrderId()">
+                        Order ID <i class="@(GetSortIcon("OrderId"))"></i>
+                    </th>
+                    <th class="text-center" @onclick="() => ApplySortingByOrderDate()">
+                        Order Date <i class="@(GetSortIcon("OrderDate"))"></i>
+                    </th>
+                    <th class="text-center" @onclick="() => ApplySortingByDeliveryDate()">
+                        Delivery Date <i class="@(GetSortIcon("DeliveryDate"))"></i>
+                    </th>
+                    <th class="text-center" @onclick="() => ApplySortingByAssignedUser()">
+                        Assigned User <i class="@(GetSortIcon("AssignedUser"))"></i>
+                    </th>
+                    <th class="text-center" @onclick="() => ApplySortingByCreatedBy()">
+                        Created By <i class="@(GetSortIcon("CreatedBy"))"></i>
+                    </th>
                 </tr>
             </thead>
             <tbody>
@@ -127,7 +136,6 @@ else
             </tbody>
         </table>
 
-
         <!-- Pagination -->
         <div class="d-flex justify-content-between align-items-center mt-3 mb-4">
             <button class="btn btn-secondary" @onclick="PreviousPage" disabled="@IsFirstPage()">
@@ -144,7 +152,6 @@ else
         <p>No orders found for the selected filters.</p>
     }
 }
-
 
 @code {
     private OrderStatus ActiveView { get; set; } = OrderStatus.InProgress;
@@ -203,6 +210,39 @@ else
     {
         ActiveView = OrderStatus.InProgress;
         await LoadOrdersAsync();
+    }
+
+    private void ApplySorting(string column)
+    {
+        OrderHistoryManager.SetSorting(column);
+        RefreshOrdersView();
+    }
+    private void ApplySortinBygOrderId()
+    {
+        ApplySorting("OrderId");
+    }
+    private void ApplySortingByOrderDate()
+    {
+        ApplySorting("OrderDate");
+    }
+    private void ApplySortingByDeliveryDate()
+    {
+        ApplySorting("DeliveryDate");
+    }
+    private void ApplySortingByAssignedUser()
+    {
+        ApplySorting("AssignedUser");
+    }
+    private void ApplySortingByCreatedBy()
+    {
+        ApplySorting("CreatedBy");
+    }
+
+    private string GetSortIcon(string column)
+    {
+        return OrderHistoryManager.SortColumn == column
+            ? (OrderHistoryManager.Ascending ? "fas fa-sort-up" : "fas fa-sort-down")
+            : "fas fa-sort";
     }
 
     private int GetCurrentPage() => ActiveView == OrderStatus.InProgress ? OrderHistoryManager.InProgressPage : OrderHistoryManager.CompletedPage;
