@@ -38,9 +38,10 @@ public class LoginManager : INotifyPropertyChanged
 
     public async Task<bool> AttemptLoginAsync()
     {
-        IsLoading = true; 
+        IsLoading = true;
         try
         {
+            ErrorMessage = string.Empty; // Clear error messages before login attempt
             var token = await _authUseCases.Login(LoginRequest);
             if (!string.IsNullOrEmpty(token))
             {
@@ -49,18 +50,24 @@ public class LoginManager : INotifyPropertyChanged
             }
             else
             {
-                ErrorMessage = "Invalid username or password. Please try again.";
                 return false;
             }
+        }
+        catch (RpcException rpcEx) when (rpcEx.StatusCode == StatusCode.Unauthenticated)
+        {
+            // Handle 401 Unauthorized
+            ErrorMessage = "Wrong credentials. Please try again.";
+            return false;
         }
         catch (RpcException rpcEx) when (rpcEx.StatusCode == StatusCode.Unavailable)
         {
             ErrorMessage = "The server is currently unavailable. Please try again later.";
             return false;
         }
-        catch (RpcException rpcEx) when (rpcEx.StatusCode == StatusCode.PermissionDenied)
+        catch (RpcException rpcEx)
         {
-            ErrorMessage = "Invalid username or password. Please try again.";
+            // Handle other RPC exceptions
+            ErrorMessage = $"Unexpected server error: {rpcEx.Status.Detail}";
             return false;
         }
         catch (HttpRequestException)
@@ -73,8 +80,10 @@ public class LoginManager : INotifyPropertyChanged
             ErrorMessage = "The server took too long to respond. Please try again later.";
             return false;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            // Log additional information for debugging
+            Console.WriteLine($"Unexpected error: {ex.Message}");
             ErrorMessage = "An unexpected error occurred. Please try again later.";
             return false;
         }
@@ -83,6 +92,8 @@ public class LoginManager : INotifyPropertyChanged
             IsLoading = false; // Set loading to false
         }
     }
+
+
 
     public async Task<string> GetUserRoleAsync()
     {
