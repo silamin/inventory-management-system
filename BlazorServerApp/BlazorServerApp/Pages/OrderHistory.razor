@@ -61,19 +61,19 @@ else
         <table class="table table-hover table-bordered table-striped">
             <thead>
                 <tr class="table-light">
-                    <th class="text-center" @onclick="() => ApplySortinBygOrderId()">
+                    <th class="text-center" @onclick="() => ApplySortinBygOrderId()" style="cursor: pointer;">
                         Order ID <i class="@(GetSortIcon("OrderId"))"></i>
                     </th>
-                    <th class="text-center" @onclick="() => ApplySortingByOrderDate()">
+                    <th class="text-center" @onclick="() => ApplySortingByOrderDate()" style="cursor: pointer;">
                         Order Date <i class="@(GetSortIcon("OrderDate"))"></i>
                     </th>
-                    <th class="text-center" @onclick="() => ApplySortingByDeliveryDate()">
+                    <th class="text-center" @onclick="() => ApplySortingByDeliveryDate()" style="cursor: pointer;">
                         Delivery Date <i class="@(GetSortIcon("DeliveryDate"))"></i>
                     </th>
-                    <th class="text-center" @onclick="() => ApplySortingByAssignedUser()">
+                    <th class="text-center" @onclick="() => ApplySortingByAssignedUser()" style="cursor: pointer;">
                         Assigned User <i class="@(GetSortIcon("AssignedUser"))"></i>
                     </th>
-                    <th class="text-center" @onclick="() => ApplySortingByCreatedBy()">
+                    <th class="text-center" @onclick="() => ApplySortingByCreatedBy()" style="cursor: pointer;">
                         Created By <i class="@(GetSortIcon("CreatedBy"))"></i>
                     </th>
                 </tr>
