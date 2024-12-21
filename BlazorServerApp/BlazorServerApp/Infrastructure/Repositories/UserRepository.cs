@@ -57,5 +57,22 @@ namespace BlazorServerApp.Infrastructure.Repositories
                 throw new ApplicationException("Error retrieving all users", ex);
             }
         }
+
+        public async Task<IEnumerable<GetUser>> GetUsersAsync(UserRole role)
+        {
+            try
+            {
+                var request = new Role { UserRole = role };
+
+                var response = await _client.getUsersAsync(request);
+
+                return response.Users;
+            }
+            catch (RpcException ex)
+            {
+                throw new ApplicationException("Error retrieving users by role", ex);
+            }
+        }
+
     }
 }

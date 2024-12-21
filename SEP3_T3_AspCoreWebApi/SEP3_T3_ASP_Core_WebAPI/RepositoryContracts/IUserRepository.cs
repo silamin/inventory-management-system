@@ -12,4 +12,6 @@ public interface IUserRepository
     IQueryable<User> GetAllUsersByRole(UserRole type);
     Task<User?> GetUserByUsernameAndPasswordAsync(string? username, string? password);
     Task<User?> GetUserByUsernameAsync(string requestUserName);
+    IQueryable<User> GetUsersByRole(UserRole userRole);
+
 }

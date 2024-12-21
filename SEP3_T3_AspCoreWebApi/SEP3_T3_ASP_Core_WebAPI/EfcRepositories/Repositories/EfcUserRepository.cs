@@ -110,6 +110,10 @@ public class EfcUserRepository: IUserRepository
     }
 
 
+    public IQueryable<User> GetUsersByRole(UserRole userRole)
+    {
+        return _ctx.Users.Where(user => user.UserRole == userRole).AsQueryable();
+    }
 
     public IQueryable<User> GetAllUsers()
     {

@@ -9,9 +9,14 @@ service UserService {
   rpc editUser(User) returns (google.protobuf.Empty);
   rpc deleteUser(DeleteUser) returns (google.protobuf.Empty);
   rpc getAllUsers(google.protobuf.Empty) returns (UserList);
+  rpc getUsers(Role) returns (UserList);
+
 }
 message DeleteUser {
   int32 userId = 1;
+}
+message Role {
+  UserRole user_role = 1; // Status to filter orders
 }
 message User {
   int32 userId = 1;

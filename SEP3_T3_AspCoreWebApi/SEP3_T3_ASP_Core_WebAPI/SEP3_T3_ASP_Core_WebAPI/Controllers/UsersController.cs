@@ -162,6 +162,31 @@ public class UsersController: ControllerBase
         }
     }
 
+    [HttpGet("role/{userRole}")]
+    public async Task<ActionResult<IEnumerable<GetUserDto>>> GetUsersByRole(UserRole userRole)
+    {
+        try
+        {
+            // Use the repository method to fetch users by role
+            List<GetUserDto> userDtos = await userRepo.GetUsersByRole(userRole)
+                .Select(user => new GetUserDto
+                {
+                    UserId = user.UserId,
+                    UserName = user.UserName,
+                    UserRole = user.UserRole,
+                })
+                .ToListAsync();
+
+            return Ok(userDtos);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            return StatusCode(500, $"An error occurred: {e.Message}");
+        }
+    }
+
+
 
 
     // Line 145: Update GetAllUsersByType method

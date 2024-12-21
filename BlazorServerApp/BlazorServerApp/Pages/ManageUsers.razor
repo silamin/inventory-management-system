@@ -1,6 +1,5 @@
 ﻿@page "/manage-users"
 @attribute [Authorize(Roles = "INVENTORY_MANAGER")]
-@using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.AspNetCore.Components.Web
 @using BlazorServerApp.Managers
 @using Users
@@ -25,18 +24,16 @@ else if (!string.IsNullOrEmpty(Manager.ErrorMessage))
 {
     <div class="alert alert-danger">@Manager.ErrorMessage</div>
 }
-else if (GroupedUsers != null && GroupedUsers.Any())
+else
 {
-    <div class="input-group mb-4">
-        <input class="form-control" type="text" placeholder="Search by username or User ID..." @bind="Manager.SearchQuery" />
-        <button class="btn btn-outline-secondary" type="button" @onclick="Manager.ClearSearch">
-            <i class="fas fa-times"></i> Clear
-        </button>
+    <div class="d-flex justify-content-between mb-4">
+        <button class="btn btn-primary" @onclick="LoadInventoryManagers">Inventory Managers</button>
+        <button class="btn btn-success" @onclick="LoadWarehouseWorkers">Warehouse Workers</button>
     </div>
 
-    @foreach (var roleGroup in GroupedUsers)
+    @if (UsersToShow != null && UsersToShow.Any())
     {
-        <h4 class="mt-4">Role: @Manager.HumanizeRole(roleGroup.Key)</h4>
+        <h4 class="mt-4">Role: @Manager.HumanizeRole(ActiveRole)</h4>
         <table class="table table-hover table-bordered">
             <thead class="table-dark">
                 <tr>
@@ -48,7 +45,7 @@ else if (GroupedUsers != null && GroupedUsers.Any())
                 </tr>
             </thead>
             <tbody>
-                @foreach (var user in roleGroup)
+                @foreach (var user in UsersToShow)
                 {
                     @if (Manager.EditingUser?.UserId == user.UserId)
                     {
@@ -95,24 +92,39 @@ else if (GroupedUsers != null && GroupedUsers.Any())
             </tbody>
         </table>
     }
-}
-else
-{
-    <p>No users found.</p>
+    else
+    {
+        <p>No users found for the selected role.</p>
+    }
 }
 
 @code {
-    private IEnumerable<IGrouping<UserRole, User>> GroupedUsers;
+    private UserRole ActiveRole { get; set; } = UserRole.InventoryManager;
+    private List<User> UsersToShow = new();
 
     protected override async Task OnInitializedAsync()
     {
-        GroupedUsers = await Manager.GetGroupedUsersAsync();
+        await LoadInventoryManagers();
+    }
+
+    private async Task LoadInventoryManagers()
+    {
+        ActiveRole = UserRole.InventoryManager;
+        UsersToShow = await Manager.GetUsersByRoleAsync(ActiveRole);
+        StateHasChanged();
+    }
+
+    private async Task LoadWarehouseWorkers()
+    {
+        ActiveRole = UserRole.WarehouseWorker;
+        UsersToShow = await Manager.GetUsersByRoleAsync(ActiveRole);
+        StateHasChanged();
     }
 
     private async void SaveUser()
     {
         await Manager.SaveUserAsync();
-        GroupedUsers = await Manager.GetGroupedUsersAsync();
+        UsersToShow = await Manager.GetUsersByRoleAsync(ActiveRole);
         StateHasChanged();
     }
 }

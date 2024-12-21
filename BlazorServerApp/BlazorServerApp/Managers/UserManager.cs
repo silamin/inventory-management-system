@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Components.Forms;
-using Blazored.Toast.Services;
+﻿using Blazored.Toast.Services;
 using BlazorServerApp.Application.UseCases;
 using Users;
 
@@ -15,6 +14,57 @@ namespace BlazorServerApp.Managers
         public List<GetUser> Users { get; private set; } = new();
         public string SearchQuery { get; set; } = string.Empty;
         public User? EditingUser { get; private set; }
+
+        public UserManager(UserUseCases userUseCases, IToastService toastService)
+        {
+            _userUseCases = userUseCases;
+            _toastService = toastService;
+        }
+
+        public async Task RefreshUsersAsync()
+        {
+            try
+            {
+                IsLoading = true;
+                ErrorMessage = string.Empty;
+                Users = (await _userUseCases.GetAllUsersAsync()).ToList();
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage = "An error occurred while fetching users: " + ex.Message;
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
+
+        public async Task<List<User>> GetUsersByRoleAsync(UserRole role)
+        {
+            try
+            {
+                IsLoading = true;
+                ErrorMessage = string.Empty;
+
+                var users = await _userUseCases.GetUsersByRoleAsync(role);
+                return users.Select(u => new User
+                {
+                    UserId = u.UserId,
+                    Username = u.UserName,
+                    Password = string.Empty,
+                    UserRole = u.UserRole
+                }).ToList();
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage = "An error occurred while fetching users: " + ex.Message;
+                return new List<User>();
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
 
         public async Task<IEnumerable<IGrouping<UserRole, User>>> GetGroupedUsersAsync()
         {
@@ -39,30 +89,6 @@ namespace BlazorServerApp.Managers
             catch (Exception ex)
             {
                 return Enumerable.Empty<IGrouping<UserRole, User>>();
-            }
-        }
-
-        public UserManager(UserUseCases userUseCases, IToastService toastService)
-        {
-            _userUseCases = userUseCases;
-            _toastService = toastService;
-        }
-
-        public async Task RefreshUsersAsync()
-        {
-            try
-            {
-                IsLoading = true;
-                ErrorMessage = string.Empty;
-                Users = (await _userUseCases.GetAllUsersAsync()).ToList();
-            }
-            catch (Exception ex)
-            {
-                ErrorMessage = "An error occurred while fetching users: " + ex.Message;
-            }
-            finally
-            {
-                IsLoading = false;
             }
         }
 
@@ -128,7 +154,6 @@ namespace BlazorServerApp.Managers
                     };
                 }
 
-                await GetGroupedUsersAsync();
                 _toastService.ShowSuccess("User details updated successfully.");
                 EditingUser = null;
             }

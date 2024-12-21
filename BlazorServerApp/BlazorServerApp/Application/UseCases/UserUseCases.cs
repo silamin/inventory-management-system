@@ -59,5 +59,17 @@ namespace BlazorServerApp.Application.UseCases
                 throw new ApplicationException("Error adding user", ex);
             }
         }
+
+        public async Task<IEnumerable<GetUser>> GetUsersByRoleAsync(UserRole role)
+        {
+            try
+            {
+                return await _userRepository.GetUsersAsync(role);
+            }
+            catch (Exception ex)
+            {
+                throw new ApplicationException("Error retrieving users", ex);
+            }
+        }
     }
 }
