@@ -78,15 +78,15 @@ public class EfcUserRepository: IUserRepository
             userToUpdate.UserName = user.UserName;
         }
 
-        // Update Password only if a new password is provided (not empty) and hash it
+        // Update Password only if a new password is provided (not empty)
         if (!string.IsNullOrWhiteSpace(user.Password))
         {
             var passwordHasher = new PasswordHasher<User>();
             userToUpdate.Password = passwordHasher.HashPassword(userToUpdate, user.Password);
         }
 
-        // Update UserRole (since role updates are straightforward)
-        if (user.UserRole != userToUpdate.UserRole)
+        // Update UserRole only if it is provided and different
+        if (user.UserRole != default && user.UserRole != userToUpdate.UserRole)
         {
             userToUpdate.UserRole = user.UserRole;
         }
@@ -99,6 +99,8 @@ public class EfcUserRepository: IUserRepository
 
         return userToUpdate;
     }
+
+
 
 
     // Delete a user from the database
