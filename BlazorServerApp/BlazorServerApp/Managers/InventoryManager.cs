@@ -12,8 +12,11 @@ namespace BlazorServerApp.Managers
         private readonly ItemUseCases _itemUseCases;
         private readonly OrderUseCases _orderUseCases;
         private readonly AuthenticationStateProvider _authenticationStateProvider;
+        private Action? _stateChangedCallback;
 
         private string _searchQuery = string.Empty;
+
+        public bool IsLoading { get; private set; } = true; // Loader state
 
         // This will hold the currently loaded items as a snapshot of data
         private List<ItemViewModel> _allItems = new List<ItemViewModel>();
@@ -26,23 +29,43 @@ namespace BlazorServerApp.Managers
         }
 
         // Initial load method; call this once on page load (e.g., OnInitializedAsync in the component)
-        public void LoadData()
+        public async Task LoadDataAsync()
         {
-            var items = _itemUseCases.GetAllItems();
-            _allItems = items.Select(item => new ItemViewModel
+            IsLoading = true;
+            try
             {
-                Id = item.ItemId,
-                Name = item.ItemName,
-                Description = item.Description,
-                QuantityInStore = item.QuantityInStore
-            }).ToList();
+                var items = await _itemUseCases.GetAllItemsAsync();
+                _allItems = items.Select(item => new ItemViewModel
+                {
+                    Id = item.ItemId,
+                    Name = item.ItemName,
+                    Description = item.Description,
+                    QuantityInStore = item.QuantityInStore
+                }).ToList();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading data: {ex.Message}");
+            }
+            finally
+            {
+                IsLoading = false;
+                NotifyStateChanged(); // Notify the view that loading has completed
+            }
         }
-
+        private void NotifyStateChanged()
+        {
+            _stateChangedCallback?.Invoke();
+        }
+        public void RegisterStateChangeCallback(Action callback)
+        {
+            _stateChangedCallback = callback;
+        }
         // Refresh data to simulate a fresh navigation to this page
-        public void RefreshData()
+        public async void RefreshData()
         {
             // Re-load all items from the use case to get the freshest data
-            LoadData();
+           await LoadDataAsync();
         }
 
         // Search filter

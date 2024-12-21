@@ -53,15 +53,18 @@ namespace BlazorServerApp.Infrastructure.Repositories
                 throw new ApplicationException("Error editing item", ex);
             }
         }
-        public IEnumerable<Item> GetAllItems()
+        public async Task<IEnumerable<Item>> GetAllItemsAsync()
         {
             try
             {
-                var response = _client.getAllItems(new Google.Protobuf.WellKnownTypes.Empty());
-
-                var items = response.Items.ToList();
-
-                return items;
+                var response = await _client.getAllItemsAsync(new Google.Protobuf.WellKnownTypes.Empty());
+                return response.Items.Select(item => new Item
+                {
+                    ItemId = item.ItemId,
+                    ItemName = item.ItemName,
+                    Description = item.Description,
+                    QuantityInStore = item.QuantityInStore
+                }).ToList();
             }
             catch (RpcException ex)
             {

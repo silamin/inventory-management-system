@@ -67,11 +67,11 @@ namespace BlazorServerApp.Application.UseCases
 
 
 
-        public IEnumerable<Item> GetAllItems()
+        public Task<IEnumerable<Item>> GetAllItemsAsync()
         {
             try
             {
-                var items = _itemRepository.GetAllItems();
+                var items = _itemRepository.GetAllItemsAsync();
                 return items;
             }
             catch (Exception ex)
