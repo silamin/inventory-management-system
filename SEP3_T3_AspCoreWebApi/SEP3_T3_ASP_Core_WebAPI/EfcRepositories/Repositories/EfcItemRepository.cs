@@ -63,10 +63,4 @@ public class EfcItemRepository: IItemRepository
     {
         return _ctx.Items.Where(item => item.IsAvailable).AsQueryable();
     }
-
-    // Get all items of a specific type from the database
-    public IQueryable<Item> GetAllItemsByType(string type)
-    {
-        return null;
-    }
 }

@@ -47,10 +47,19 @@ public class EfcUserRepository: IUserRepository
 
     public async Task<User> AddUserAsync(User user)
     {
+        // Check if a user with the same username already exists
+        bool userExists = await _ctx.Users.AnyAsync(u => u.UserName == user.UserName);
+        if (userExists)
+        {
+            throw new ApplicationException($"A user with the username '{user.UserName}' already exists.");
+        }
+
+        // Add the new user
         EntityEntry<User> entityEntry = await _ctx.Users.AddAsync(user);
         await _ctx.SaveChangesAsync();
         return entityEntry.Entity;
     }
+
 
     // Update a user in the database
     public async Task<User> UpdateUserAsync(int userId, User user)
@@ -114,35 +123,19 @@ public class EfcUserRepository: IUserRepository
     {
         return _ctx.Users.Where(user => user.UserRole == userRole).AsQueryable();
     }
-
-    public IQueryable<User> GetAllUsers()
+    /*
+     * public IQueryable<User> GetAllUsers()
     {
         return _ctx.Users.AsQueryable();
     }
+     * 
+     */
+
 
 
     public IQueryable<User> GetAllUsersByRole(UserRole type)
     {
         return _ctx.Users.Where(u => u.UserRole == type);
     }
-
-    public Task<User?> GetUserByUsernameAndPasswordAsync(string? username, string? password)
-    {
-        throw new NotImplementedException();
-    }
-
-    // Get a single user from the database
-    public async Task<User> GetSingleAsync(int userId)
-    {
-        return await _ctx.Users.SingleOrDefaultAsync(u => u.UserId == userId) ?? throw new InvalidOperationException();
-    }
-    
-
-    //get user by username
-    public Task<User?> GetUserByUsernameAsync(string requestUserName)
-    {
-        return  Task.FromResult(_ctx.Users.FirstOrDefault(u => u.UserName == requestUserName));
-    }
-    
     
 }

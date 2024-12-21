@@ -63,31 +63,6 @@ namespace SEP3_T3_ASP_Core_WebAPI.Controllers
             }
         }
 
-
-        [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateOrder([FromRoute] int id, [FromBody] Order order)
-        {
-            try
-            {
-                var orderToUpdate = await orderRepository.GetOrderById(id);
-                if (orderToUpdate == null)
-                {
-                    return NotFound($"Order with ID {id} not found.");
-                }
-
-                orderToUpdate.OrderStatus = order.OrderStatus;
-                orderToUpdate.DeliveryDate = order.DeliveryDate;
-                orderToUpdate.OrderItems = order.OrderItems;
-
-                await orderRepository.UpdateOrderAsync(orderToUpdate);
-                return NoContent();
-            }
-            catch (InvalidOperationException)
-            {
-                return NotFound($"Order with ID {id} not found.");
-            }
-        }
-
         [HttpGet("status/{status}")]
         public async Task<ActionResult<List<GetOrderDTO>>> GetOrdersByStatus([FromRoute] string status)
         {
@@ -129,9 +104,9 @@ namespace SEP3_T3_ASP_Core_WebAPI.Controllers
             }
         }
 
-
-
-        [HttpGet]
+        /*
+         *         
+         *         [HttpGet]
         public async Task<ActionResult<List<GetOrderDTO>>> GetAllOrders()
         {
             var orders = await orderRepository.GetAllOrders();
@@ -154,5 +129,6 @@ namespace SEP3_T3_ASP_Core_WebAPI.Controllers
             return Ok(orderDtos);
         }
 
+         */
     }
 }

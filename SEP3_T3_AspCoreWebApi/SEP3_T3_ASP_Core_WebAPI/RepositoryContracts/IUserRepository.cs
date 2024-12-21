@@ -8,10 +8,8 @@ public interface IUserRepository
     Task<User> AddUserAsync(User user);
     Task<User> UpdateUserAsync(int userId, User user);
     Task<User> DeleteUserAsync(int id);
-    IQueryable<User> GetAllUsers();
+    //IQueryable<User> GetAllUsers();
     IQueryable<User> GetAllUsersByRole(UserRole type);
-    Task<User?> GetUserByUsernameAndPasswordAsync(string? username, string? password);
-    Task<User?> GetUserByUsernameAsync(string requestUserName);
     IQueryable<User> GetUsersByRole(UserRole userRole);
 
 }

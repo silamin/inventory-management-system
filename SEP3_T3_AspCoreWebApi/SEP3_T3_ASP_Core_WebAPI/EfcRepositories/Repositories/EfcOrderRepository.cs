@@ -15,22 +15,6 @@ public class EfcOrderRepository : IOrderRepository
         this.ctx = ctx;
     }
 
-    public async Task<Order> GetOrderById(int id)
-    {
-        var order = await ctx.Orders
-            .Include(order => order.OrderItems)
-            .Include(order => order.AssignedUser)
-            .Include(order => order.CreatedBy)
-            .SingleOrDefaultAsync(o => o.OrderId == id);
-
-        if (order == null)
-        {
-            throw new InvalidOperationException($"Order with ID {id} not found.");
-        }
-
-        return order;
-    }
-
     public async Task<Order> AddOrderAsync(Order order)
     {
         if (order.CreatedById <= 0)
@@ -66,37 +50,8 @@ public class EfcOrderRepository : IOrderRepository
         return order;
     }
 
-
-
-
-
-    public async Task<Order> UpdateOrderAsync(Order order)
-    {
-        var existingOrder = await ctx.Orders.SingleOrDefaultAsync(o => o.OrderId == order.OrderId);
-        if (existingOrder == null)
-        {
-            throw new InvalidOperationException("Order does not exist.");
-        }
-
-        ctx.Entry(existingOrder).CurrentValues.SetValues(order);
-        await ctx.SaveChangesAsync();
-        return existingOrder;
-    }
-
-    public async Task<Order> DeleteOrderAsync(int id)
-    {
-        var existingOrder = await ctx.Orders.SingleOrDefaultAsync(o => o.OrderId == id);
-        if (existingOrder == null)
-        {
-            throw new InvalidOperationException("Order does not exist.");
-        }
-
-        ctx.Orders.Remove(existingOrder);
-        await ctx.SaveChangesAsync();
-        return existingOrder;
-    }
-
-    public async Task<List<Order>> GetAllOrders()
+    /*
+  *public async Task<List<Order>> GetAllOrders()
     {
         return await ctx.Orders
             .Include(order => order.OrderItems)
@@ -105,6 +60,9 @@ public class EfcOrderRepository : IOrderRepository
             .Include(order => order.CreatedBy)
             .ToListAsync();
     }
+  * 
+  */
+
     public async Task<List<Order>> GetOrdersByStatus(OrderStatus status)
     {
         return await ctx.Orders
@@ -114,48 +72,5 @@ public class EfcOrderRepository : IOrderRepository
             .Include(order => order.AssignedUser)
             .Include(order => order.CreatedBy)
             .ToListAsync();
-    }
-
-
-    public Task<IQueryable<Order>> GetAllOrdersByType(string type)
-    {
-        throw new NotImplementedException();
-    }
-
-    public async Task<Order> GetSingleAsync(int orderId)
-    {
-        var order = await ctx.Orders
-            .Include(order => order.OrderItems)
-            .Include(order => order.AssignedUser)
-            .Include(order => order.CreatedBy)
-            .SingleOrDefaultAsync(o => o.OrderId == orderId);
-
-        if (order == null)
-        {
-            throw new InvalidOperationException($"Order with ID {orderId} not found.");
-        }
-
-        return order;
-    }
-
-    public IQueryable<Order> GetMany()
-    {
-        return ctx.Orders.AsQueryable();
-    }
-
-    public async Task<Order> GetOrderByUserIdAsync(int userId)
-    {
-        var order = await ctx.Orders
-            .Include(order => order.OrderItems)
-            .Include(order => order.AssignedUser)
-            .Include(order => order.CreatedBy)
-            .SingleOrDefaultAsync(o => o.UserId == userId);
-
-        if (order == null)
-        {
-            throw new InvalidOperationException($"Order for user with ID {userId} not found.");
-        }
-
-        return order;
     }
 }

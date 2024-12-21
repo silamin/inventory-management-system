@@ -9,5 +9,4 @@ public interface IItemRepository
     Task<Item> UpdateItemAsync(Item item);
     Task<Item> DeleteItemAsync(int id);
     IQueryable<Item> GetAllItems();
-    IQueryable<Item> GetAllItemsByType(string type);
 }
