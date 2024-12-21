@@ -23,12 +23,12 @@
             {
                 var role = user.FindFirst(ClaimTypes.Role)?.Value;
 
-                if (role == "InventoryManager")
+                if (role == "INVENTORY_MANAGER")
                 {
                     _hasRedirected = true;
                     NavigationManager.NavigateTo("/inventory-dashboard", true);
                 }
-                else if (role == "WarehouseWorker")
+                else if (role == "WAREHOUSE_WORKER")
                 {
                     _hasRedirected = true;
                     NavigationManager.NavigateTo("/warehouse-worker", true);

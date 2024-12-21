@@ -77,12 +77,25 @@ public class CustomAuthenticationStateProvider : AuthenticationStateProvider
         {
             foreach (var kvp in keyValuePairs)
             {
-                claims.Add(new Claim(kvp.Key, kvp.Value.ToString()));
+                // Map "role" claim to ClaimTypes.Role
+                var claimType = kvp.Key.Equals("role", StringComparison.OrdinalIgnoreCase)
+                                ? ClaimTypes.Role
+                                : kvp.Key;
+
+                claims.Add(new Claim(claimType, kvp.Value.ToString()));
             }
+        }
+
+        // Debug: Log claims to verify role is parsed correctly
+        foreach (var claim in claims)
+        {
+            Console.WriteLine($"Claim Type: {claim.Type}, Value: {claim.Value}");
         }
 
         return claims;
     }
+
+
 
     private string PadBase64(string base64)
     {

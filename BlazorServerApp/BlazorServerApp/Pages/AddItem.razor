@@ -1,6 +1,6 @@
 ﻿@page "/add-item"
+@attribute [Authorize(Roles = "INVENTORY_MANAGER")]
 @using Items
-
 @inject BlazorServerApp.Application.UseCases.ItemUseCases ItemUseCases
 @inject Blazored.Toast.Services.IToastService ToastService
 @inject NavigationManager NavigationManager
@@ -33,7 +33,7 @@
 
             <!-- Description Input -->
             <div class="mb-3">
-                <label for="itemDescription" class="form-label">Description <i class="fas fa-info-circle text-muted" title="Provide a brief description of the item"></i></label>
+                <label for="itemDescription" class="form-label">Description</label>
                 <div class="input-group">
                     <span class="input-group-text bg-light"><i class="fas fa-align-left text-muted"></i></span>
                     <InputTextArea id="itemDescription" @bind-Value="newItem.Description" class="form-control" placeholder="Enter item description" />
@@ -50,7 +50,7 @@
                 <ValidationMessage For="@(() => newItem.QuantityInStore)" class="text-danger mt-1" />
             </div>
 
-            <!-- Submit Button with Loading Spinner -->
+            <!-- Submit Button -->
             <div class="d-grid">
                 <button type="submit" class="btn btn-primary btn-lg mt-3" disabled="@isLoading">
                     @if (isLoading)

@@ -91,14 +91,23 @@ public class LoginManager : INotifyPropertyChanged
 
         if (user.Identity?.IsAuthenticated == true)
         {
-            return user.FindFirst(ClaimTypes.Role)?.Value ?? string.Empty;
+            var role = user.FindFirst(ClaimTypes.Role)?.Value;
+            Console.WriteLine($"Parsed Role: {role}"); // Debug log
+            return role?.ToUpperInvariant() ?? string.Empty; // Normalize role to uppercase
         }
 
         return string.Empty;
     }
 
+
+
     private void OnPropertyChanged(string propertyName)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+    public async Task LogoutAsync()
+    {
+        ((CustomAuthenticationStateProvider)_authenticationStateProvider).MarkUserAsLoggedOut();
+
     }
 }

@@ -1,4 +1,5 @@
 ﻿@page "/order-history"
+@attribute [Authorize(Roles = "INVENTORY_MANAGER")]
 
 @using BlazorServerApp.Managers
 @using Orders
@@ -45,7 +46,6 @@
         Completed
     </button>
 </div>
-
 
 <!-- Grouped Orders By Status -->
 @if (GroupedOrders?.Any() == true)

@@ -1,7 +1,9 @@
 ﻿@inject LoginManager loginManager
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @using Microsoft.AspNetCore.Components
+@using System.Security.Claims
 
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
@@ -14,58 +16,91 @@
 
 <div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
     <nav class="flex-column">
+        @if (isInventoryManager)
+        {
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="/inventory-dashboard">
+                    <i class="fas fa-home nav-icon"></i>
+                    <span class="ms-2 nav-label">Home</span>
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="/order-history">
+                    <i class="fas fa-receipt nav-icon"></i>
+                    <span class="ms-2 nav-label">Orders</span>
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="/add-item">
+                    <i class="fas fa-plus-circle nav-icon"></i>
+                    <span class="ms-2 nav-label">Add Item</span>
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="/manage-users">
+                    <i class="fas fa-users-cog nav-icon"></i>
+                    <span class="ms-2 nav-label">Manage Users</span>
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="/add-user">
+                    <i class="fas fa-user-plus nav-icon"></i>
+                    <span class="ms-2 nav-label">Add User</span>
+                </NavLink>
+            </div>
+        }
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/inventory-dashboard">
-                <i class="fas fa-home nav-icon"></i>
-                <span class="ms-2 nav-label">Home</span>
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/order-history">
-                <i class="fas fa-receipt nav-icon"></i>
-                <span class="ms-2 nav-label">Orders</span>
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/add-item">
-                <i class="fas fa-plus-circle nav-icon"></i>
-                <span class="ms-2 nav-label">Add Item</span>
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/manage-users">
-                <i class="fas fa-users-cog nav-icon"></i>
-                <span class="ms-2 nav-label">Manage Users</span>
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/add-user">
-                <i class="fas fa-user-plus nav-icon"></i>
-                <span class="ms-2 nav-label">Add User</span>
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/login" @onclick="LogoutAsync">
+            <button class="btn nav-link" @onclick="LogoutAsync">
                 <i class="fas fa-sign-out-alt nav-icon"></i>
                 <span class="ms-2 nav-label">Log out</span>
-            </NavLink>
+            </button>
         </div>
     </nav>
 </div>
 
 @code {
     private bool collapseNavMenu = true;
-
     private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private bool isInventoryManager;
 
     private void ToggleNavMenu()
     {
         collapseNavMenu = !collapseNavMenu;
     }
 
-    private void LogoutAsync()
+    private async Task LogoutAsync()
     {
-        // Call any logout logic here, such as clearing tokens, etc.
+        await loginManager.LogoutAsync();
         NavigationManager.NavigateTo("/login", true);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await UpdateUserRoleAsync();
+
+        // Subscribe to authentication state changes
+        AuthenticationStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
+    }
+
+    private async void OnAuthenticationStateChanged(Task<AuthenticationState> task)
+    {
+        await UpdateUserRoleAsync();
+        StateHasChanged();
+    }
+
+    private async Task UpdateUserRoleAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        isInventoryManager = user.Identity?.IsAuthenticated == true &&
+                             user.IsInRole("INVENTORY_MANAGER");
+    }
+
+    public void Dispose()
+    {
+        // Unsubscribe to prevent memory leaks
+        AuthenticationStateProvider.AuthenticationStateChanged -= OnAuthenticationStateChanged;
     }
 }

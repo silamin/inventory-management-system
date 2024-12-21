@@ -1,6 +1,6 @@
 ﻿@page "/add-user"
+@attribute [Authorize(Roles = "INVENTORY_MANAGER")]
 @using Users
-
 @inject BlazorServerApp.Application.UseCases.UserUseCases UserUseCases
 @inject Blazored.Toast.Services.IToastService ToastService
 @inject NavigationManager NavigationManager
@@ -51,13 +51,12 @@
                         {
                             <option value="@role">@HumanizeRole(role)</option>
                         }
-
                     </InputSelect>
                 </div>
                 <ValidationMessage For="@(() => newUser.UserRole)" class="text-danger mt-1" />
             </div>
 
-            <!-- Submit Button with Loading Spinner -->
+            <!-- Submit Button -->
             <div class="d-grid">
                 <button type="submit" class="btn btn-primary btn-lg mt-3" disabled="@isLoading">
                     @if (isLoading)
@@ -98,6 +97,7 @@
             isLoading = false;
         }
     }
+
     private string HumanizeRole(UserRole role)
     {
         return role switch
@@ -107,5 +107,4 @@
             _ => role.ToString()
         };
     }
-
 }

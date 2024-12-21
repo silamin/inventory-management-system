@@ -1,11 +1,12 @@
-﻿<CascadingAuthenticationState>
+﻿@using BlazorServerApp.Pages
+<CascadingAuthenticationState>
     <Router AppAssembly="@typeof(Program).Assembly">
         <Found Context="routeData">
             <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
                 <NotAuthorized>
                     @if (!isAuthenticated)
                     {
-                        <SEP3_T1_BlazorUI.Pages.Login />
+                        <Login />
                     }
                     else
                     {
@@ -24,13 +25,36 @@
     </Router>
 </CascadingAuthenticationState>
 
-
 @code {
     [Inject] private NavigationManager NavigationManager { get; set; }
+    [Inject] private AuthenticationStateProvider AuthenticationStateProvider { get; set; }
 
     private bool isAuthenticated = false;
 
     protected override async Task OnInitializedAsync()
     {
-        isAuthenticated =  false;    }
+        // Check the initial authentication state
+        await UpdateAuthenticationStateAsync();
+
+        // Subscribe to authentication state changes
+        AuthenticationStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
+    }
+
+    private async void OnAuthenticationStateChanged(Task<AuthenticationState> task)
+    {
+        await UpdateAuthenticationStateAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task UpdateAuthenticationStateAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        isAuthenticated = authState.User.Identity?.IsAuthenticated ?? false;
+    }
+
+    public void Dispose()
+    {
+        // Unsubscribe from the event to avoid memory leaks
+        AuthenticationStateProvider.AuthenticationStateChanged -= OnAuthenticationStateChanged;
+    }
 }

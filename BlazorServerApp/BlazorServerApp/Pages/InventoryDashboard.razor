@@ -1,13 +1,12 @@
 ﻿@page "/inventory-dashboard"
-
-@using BlazorServerApp.Managers;
+@attribute [Authorize(Roles = "INVENTORY_MANAGER")]
+@using BlazorServerApp.Managers
 @inject InventoryManager Manager
 @inject Blazored.Toast.Services.IToastService ToastService
 
 <PageTitle>Inventory Dashboard</PageTitle>
 
 <h1>Inventory Dashboard</h1>
-
 <p>Welcome to your inventory management system.</p>
 
 <!-- Search Bar -->
@@ -117,35 +116,27 @@
 @code {
     protected override void OnInitialized()
     {
-        // Initial load of data
         Manager.LoadData();
-        base.OnInitialized();
     }
 
     private async Task DeleteItem(ItemViewModel item)
     {
-        item.IsDeleting = true; // Show "deleting" status
+        item.IsDeleting = true;
         try
         {
-            // Call the manager's async delete method
             await Manager.DeleteItemAsync(item);
-
-            // Notify user of successful deletion
             ToastService.ShowSuccess($"Item '{item.Name}' deleted successfully!");
         }
         catch (Exception ex)
         {
-            // If an error occurred, show an error message
             ToastService.ShowError($"Error: {ex.Message}");
         }
         finally
         {
-            // Reset the item's deletion state and update the UI
             item.IsDeleting = false;
             StateHasChanged();
         }
     }
-
 
     private async Task UpdateItem(ItemViewModel item)
     {
