@@ -210,10 +210,34 @@ namespace BlazorServerApp.Managers
         }
 
 
-        public bool HasSelectedItems => FilterAndSortItems().Any(i => i.IsSelected);
+        public bool HasSelectedItems => FilterAndSortItems().Any(i => i.IsSelected)
+                                        && FilterAndSortItems().Where(i => i.IsSelected).All(i => i.OrderQuantity > 0);
+
+        public DateTime? DeliveryDate { get; set; } = null;
 
         public async Task PlaceOrder()
         {
+            // Retrieve the authenticated user's claims
+            var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+
+            if (user.Identity == null || !user.Identity.IsAuthenticated)
+            {
+                throw new UnauthorizedAccessException("User must be logged in to place an order.");
+            }
+
+            // Retrieve the user ID from the "sub" claim
+            var userIdClaim = user.FindFirst("sub")?.Value; // Use "sub" as it holds the user ID in your token
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+            {
+                throw new InvalidOperationException("User ID is invalid or not found in the authentication claims.");
+            }
+
+            if (DeliveryDate == null)
+            {
+                throw new InvalidOperationException("Delivery date must be selected.");
+            }
+
             var selectedItems = FilterAndSortItems().Where(i => i.IsSelected).ToList();
             var orderItems = selectedItems.Select(i => new CreateOrderItem
             {
@@ -224,12 +248,28 @@ namespace BlazorServerApp.Managers
             var orderRequest = new CreateOrder
             {
                 OrderItems = { orderItems },
-                DeliveryDate = Timestamp.FromDateTime(DateTime.UtcNow),
-                CreatedBy = 1
+                DeliveryDate = Timestamp.FromDateTime(DeliveryDate.Value.ToUniversalTime()),
+                CreatedBy = userId // Use the extracted user ID
             };
 
-            await _orderUseCases.AddOrderAsync(orderRequest);
+            try
+            {
+                await _orderUseCases.AddOrderAsync(orderRequest);
+
+                // Refetch items after placing the order
+                await LoadDataAsync();
+
+                // Notify success
+                NotifyStateChanged(); // Update UI after data reload
+            }
+            catch (Exception ex)
+            {
+                // Handle errors appropriately
+                Console.WriteLine($"Error placing order: {ex.Message}");
+                throw;
+            }
         }
+
     }
 
 }

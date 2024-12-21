@@ -86,7 +86,7 @@
         {
             await UserUseCases.AddUserAsync(newUser);
             ToastService.ShowSuccess($"User '{newUser.UserName}' added successfully!");
-            NavigationManager.NavigateTo("/user-dashboard");
+            NavigationManager.NavigateTo("/inventory-dashboard");
         }
         catch (Exception ex)
         {

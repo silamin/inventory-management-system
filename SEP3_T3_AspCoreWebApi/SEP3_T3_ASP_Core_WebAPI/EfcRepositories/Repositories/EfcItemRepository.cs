@@ -34,10 +34,17 @@ public class EfcItemRepository: IItemRepository
         {
             throw new InvalidOperationException("Item does not exist");
         }
+
+        if (item.QuantityInStore < 0)
+        {
+            throw new InvalidOperationException("QuantityInStore cannot be negative");
+        }
+
         _ctx.Items.Update(item);
         await _ctx.SaveChangesAsync();
         return item;
     }
+
 
     // Delete an item from the database
     // Delete an item from the database

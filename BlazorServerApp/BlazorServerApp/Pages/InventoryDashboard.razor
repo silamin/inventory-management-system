@@ -116,9 +116,20 @@ else
         </button>
     </div>
 
-    <!-- Place Order Button -->
-    <div class="my-3">
-        <button class="btn btn-primary w-100" @onclick="PlaceOrder" disabled="@(!Manager.HasSelectedItems)">
+    <!-- Horizontal Alignment for Date Picker and Place Order Button -->
+    <div class="d-flex align-items-center my-3">
+        <div class="form-group mb-0" style="margin-right: 1rem;">
+            <input type="date"
+                   id="deliveryDate"
+                   class="form-control"
+                   @bind="Manager.DeliveryDate"
+                   style="width: auto;"
+                   min="@Today" />
+        </div>
+        <button class="btn btn-primary w-100"
+                @onclick="PlaceOrder"
+                disabled="@(!Manager.HasSelectedItems || Manager.DeliveryDate == null)"
+                style="flex-grow: 1;">
             <i class="fas fa-shopping-cart"></i> Place Order
         </button>
     </div>
@@ -161,6 +172,9 @@ else
         catch (Exception ex)
         {
             ToastService.ShowError($"Error: {ex.Message}");
+            await Manager.LoadDataAsync();
+            StateHasChanged(); // Refresh the UI
+
         }
     }
 
@@ -183,12 +197,17 @@ else
         StateHasChanged();
     }
 
+    private string Today => DateTime.Now.ToString("yyyy-MM-dd");
+
     private async Task PlaceOrder()
     {
         try
         {
             await Manager.PlaceOrder();
             ToastService.ShowSuccess("Order placed successfully");
+            await Manager.LoadDataAsync();
+            StateHasChanged(); // Refresh the UI
+
         }
         catch (Exception ex)
         {

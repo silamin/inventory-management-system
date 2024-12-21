@@ -38,17 +38,35 @@ public class EfcOrderRepository : IOrderRepository
         await ctx.SaveChangesAsync(); // Now OrderId is available!
         Console.WriteLine($"Order created successfully with OrderId: {order.OrderId}");
 
-        // Attach the OrderId to all OrderItems
+        // Update the items' QuantityInStore and attach OrderItems
         foreach (var orderItem in order.OrderItems)
         {
-            orderItem.OrderId = order.OrderId; // Attach the new OrderId to each OrderItem
+            var item = await ctx.Items.FirstOrDefaultAsync(i => i.ItemId == orderItem.ItemId);
+            if (item == null)
+            {
+                throw new Exception($"Item with ItemId '{orderItem.ItemId}' not found.");
+            }
+
+            if (item.QuantityInStore < orderItem.TotalQuantity)
+            {
+                throw new Exception($"Item '{item.ItemName}' has insufficient stock. Available: {item.QuantityInStore}, Required: {orderItem.TotalQuantity}");
+            }
+
+            // Update QuantityInStore
+            item.QuantityInStore -= orderItem.TotalQuantity;
+
+            // Attach the OrderId to OrderItem
+            orderItem.OrderId = order.OrderId;
             orderItem.QuantityToPick = orderItem.TotalQuantity;
+
             ctx.Attach(orderItem); // Attach instead of Add
         }
 
-        await ctx.SaveChangesAsync(); // Save all changes at once
+        // Save changes for OrderItems and Items
+        await ctx.SaveChangesAsync();
         return order;
     }
+
 
     /*
   *public async Task<List<Order>> GetAllOrders()

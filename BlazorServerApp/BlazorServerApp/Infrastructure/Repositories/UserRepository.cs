@@ -13,9 +13,19 @@ namespace BlazorServerApp.Infrastructure.Repositories
             _client = client;
         }
 
-        public Task<GetUser> AddUserAsync(CreateUser user)
+        public async Task<GetUser> AddUserAsync(CreateUser user)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var response = await _client.addUserAsync(user);
+
+                return response;
+
+            }
+            catch (RpcException ex)
+            {
+                throw new ApplicationException("Error deleting User", ex);
+            }
         }
 
         public async Task DeleteUserAsync(DeleteUser user)

@@ -22,15 +22,24 @@ namespace BlazorServerApp.Infrastructure.Repositories
         {
             try
             {
-                // This part is left unimplemented since it's unrelated to the issue
-                throw new NotImplementedException();
+                // Call the gRPC method `createOrder` and await the response
+                var response = await _client.createOrderAsync(order);
+
+                // Return the success flag from the response
+                return response.Success;
             }
             catch (RpcException ex)
             {
-                // Handle gRPC exception appropriately (logging, rethrow, etc.)
-                throw new ApplicationException("Error adding order", ex);
+                // Log the exception or handle it accordingly
+                throw new ApplicationException($"gRPC error while adding order: {ex.Status.Detail}", ex);
+            }
+            catch (Exception ex)
+            {
+                // Handle any other exceptions
+                throw new ApplicationException("Unexpected error while adding order.", ex);
             }
         }
+
 
         public async Task<IEnumerable<Order>> GetAllOrdersAsync()
         {
