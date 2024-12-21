@@ -15,6 +15,10 @@ namespace BlazorServerApp.Managers
         public string SearchQuery { get; set; } = string.Empty;
         public User? EditingUser { get; private set; }
 
+        // Sorting Properties
+        public string SortColumn { get; private set; } = "UserName";
+        public bool Ascending { get; private set; } = true;
+
         public UserManager(UserUseCases userUseCases, IToastService toastService)
         {
             _userUseCases = userUseCases;
@@ -28,7 +32,7 @@ namespace BlazorServerApp.Managers
                 IsLoading = true;
                 ErrorMessage = string.Empty;
 
-                var usersByRole = await _userUseCases.GetUsersByRoleAsync(role); // Pass the role here
+                var usersByRole = await _userUseCases.GetUsersByRoleAsync(role);
                 Users = usersByRole.Select(u => new GetUser
                 {
                     UserId = u.UserId,
@@ -45,7 +49,6 @@ namespace BlazorServerApp.Managers
                 IsLoading = false;
             }
         }
-
 
         public async Task<List<User>> GetUsersByRoleAsync(UserRole role)
         {
@@ -148,6 +151,26 @@ namespace BlazorServerApp.Managers
         public void CancelEdit()
         {
             EditingUser = null;
+        }
+
+        // Sorting logic
+        public void SetSorting(string column)
+        {
+            if (SortColumn == column)
+            {
+                Ascending = !Ascending;
+            }
+            else
+            {
+                SortColumn = column;
+                Ascending = true;
+            }
+        }
+
+        public object? GetPropertyValue(GetUser user, string propertyName)
+        {
+            var property = typeof(GetUser).GetProperty(propertyName);
+            return property?.GetValue(user);
         }
     }
 }
