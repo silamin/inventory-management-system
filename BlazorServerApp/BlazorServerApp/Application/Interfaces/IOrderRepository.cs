@@ -6,6 +6,7 @@ namespace BlazorServerApp.Application.Interfaces
     {
         Task<IEnumerable<Order>> GetAllOrdersAsync();
         Task<bool> AddOrderAsync(CreateOrder order);
+        Task<IEnumerable<Order>> GetOrdersAsync(OrderStatus status);
     }
 
 

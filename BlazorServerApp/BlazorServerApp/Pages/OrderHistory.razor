@@ -1,8 +1,8 @@
 ﻿@page "/order-history"
 @attribute [Authorize(Roles = "INVENTORY_MANAGER")]
 
-@using BlazorServerApp.Managers
 @using Orders
+@using BlazorServerApp.Managers
 
 @inject OrderHistoryManager OrderHistoryManager
 
@@ -17,13 +17,11 @@
                @bind="OrderHistoryManager.StartDate"
                @bind:after="ApplyFilter" />
     </div>
-
     <div class="me-3">
         <input type="date" class="form-control"
                @bind="OrderHistoryManager.EndDate"
                @bind:after="ApplyFilter" />
     </div>
-
     <div class="input-group">
         <input type="text" class="form-control" placeholder="Search by Order ID"
                @bind="OrderHistoryManager.SearchQuery"
@@ -36,106 +34,100 @@
 <!-- Tab/Toggle Navigation -->
 <div class="d-flex w-100 mb-4">
     <button class="btn btn-primary flex-fill me-2"
-            @onclick="() => SwitchViewInProgress()"
+            @onclick="SwitchViewInProgress"
             disabled="@IsActiveViewInProgress()">
         In Progress
     </button>
     <button class="btn btn-success flex-fill ms-2"
-            @onclick="() => SwitchViewCompleted()"
+            @onclick="SwitchViewCompleted"
             disabled="@IsActiveViewCompleted()">
         Completed
     </button>
 </div>
 
-<!-- Grouped Orders By Status -->
-@if (GroupedOrders?.Any() == true)
+<!-- Orders Table -->
+@if (OrdersToShow.Any())
 {
-    var ordersToShow = GroupedOrders.FirstOrDefault(g => g.Key == ActiveView);
-    if (ordersToShow != null)
-    {
-        <h2 class="mt-4">@ActiveView</h2>
+    <h2 class="mt-4">@ActiveView</h2>
 
-        <table class="table">
-            <thead>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Order Date</th>
+                <th>Delivery Date</th>
+                <th>Assigned User</th>
+                <th>Created By</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var order in OrdersToShow)
+            {
                 <tr>
-                    <th @onclick="() => SortByOrderId()" style="cursor:pointer;">
-                        Order ID
-                        <i class="@OrderHistoryManager.GetSortIcon("OrderId")"></i>
-                    </th>
-                    <th @onclick="() => SortByCreatedAt()" style="cursor:pointer;">
-                        Order Date
-                        <i class="@OrderHistoryManager.GetSortIcon("CreatedAt")"></i>
-                    </th>
-                    <th>Delivery Date</th>
-                    <th>Assigned User</th>
-                    <th>Created By</th>
+                    <td>@order.OrderId</td>
+                    <td>@order.CreatedAt.ToDateTime().ToString("g")</td>
+                    <td>@order.DeliveryDate.ToDateTime().ToString("g")</td>
+                    <td>@order.AssignedUser</td>
+                    <td>@order.CreatedByUser</td>
                 </tr>
-            </thead>
-
-            <tbody>
-                @foreach (var order in ordersToShow)
+                @if (ActiveView == OrderStatus.Completed)
                 {
                     <tr>
-                        <td>@order.OrderId</td>
-                        <td>@order.CreatedAt.ToDateTime().ToString("g")</td>
-                        <td>@order.DeliveryDate.ToDateTime().ToString("g")</td>
-                        <td>@order.AssignedUser</td>
-                        <td>@order.CreatedByUser</td>
-                    </tr>
-
-                    <tr>
                         <td colspan="5">
-                            @if (ActiveView == OrderStatus.Completed)
-                            {
-                                <div class="d-flex flex-wrap p-2">
-                                    @foreach (var item in order.OrderItems)
-                                    {
-                                        <div class="me-3">
-                                            <strong>@item.ItemName</strong>: @item.TotalQuantity
-                                        </div>
-                                    }
-                                </div>
-                            }
-                            else if (ActiveView == OrderStatus.InProgress)
-                            {
-                                <table class="table table-sm table-bordered">
-                                    <thead>
-                                        <tr>
-                                            <th>Item Name</th>
-                                            <th>Quantity to Pick</th>
-                                            <th>Items Picked</th>
-                                            <th>Total Quantity Ordered</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach (var item in order.OrderItems)
-                                        {
-                                            <tr>
-                                                <td>@item.ItemName</td>
-                                                <td>@item.QuantityToPick</td>
-                                                <td>@(item.TotalQuantity - item.QuantityToPick)</td>
-                                                <td>@item.TotalQuantity</td>
-                                            </tr>
-                                        }
-                                    </tbody>
-                                </table>
-                            }
+                            <div class="d-flex flex-wrap p-2">
+                                @foreach (var item in order.OrderItems)
+                                {
+                                    <div class="me-3">
+                                        <strong>@item.ItemName</strong>:
+                                        Picked @item.QuantityToPick / Total @item.TotalQuantity
+                                    </div>
+                                }
+                            </div>
                         </td>
                     </tr>
                 }
-            </tbody>
-        </table>
+                else if (ActiveView == OrderStatus.InProgress)
+                {
+                    <tr>
+                        <td colspan="5">
+                            <table class="table table-sm table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Item Name</th>
+                                        <th>Quantity to Pick</th>
+                                        <th>Items Picked</th>
+                                        <th>Total Quantity Ordered</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in order.OrderItems)
+                                    {
+                                        <tr>
+                                            <td>@item.ItemName</td>
+                                            <td>@item.QuantityToPick</td>
+                                            <td>@(item.TotalQuantity - item.QuantityToPick)</td>
+                                            <td>@item.TotalQuantity</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
 
-        <div class="d-flex justify-content-between align-items-center mt-3">
-            <button class="btn btn-secondary" @onclick="PreviousPage" disabled="@OrderHistoryManager.IsFirstPage(ActiveView)">
-                <i class="fas fa-arrow-left"></i> Previous
-            </button>
-            <span>Page @OrderHistoryManager.GetCurrentPage(ActiveView) of @OrderHistoryManager.GetTotalPages(ActiveView)</span>
-            <button class="btn btn-secondary" @onclick="NextPage" disabled="@OrderHistoryManager.IsLastPage(ActiveView)">
-                Next <i class="fas fa-arrow-right"></i>
-            </button>
-        </div>
-    }
+    <!-- Pagination -->
+    <div class="d-flex justify-content-between align-items-center mt-3">
+        <button class="btn btn-secondary" @onclick="PreviousPage" disabled="@IsFirstPage()">
+            <i class="fas fa-arrow-left"></i> Previous
+        </button>
+        <span>Page @GetCurrentPage() of @OrderHistoryManager.GetTotalPages(ActiveView)</span>
+        <button class="btn btn-secondary" @onclick="NextPage" disabled="@IsLastPage()">
+            Next <i class="fas fa-arrow-right"></i>
+        </button>
+    </div>
 }
 else
 {
@@ -143,25 +135,30 @@ else
 }
 
 @code {
-    private List<IGrouping<OrderStatus, Order>> GroupedOrders;
     private OrderStatus ActiveView { get; set; } = OrderStatus.InProgress;
+    private IEnumerable<Order> OrdersToShow = Enumerable.Empty<Order>();
 
     protected override async Task OnInitializedAsync()
     {
-        await OrderHistoryManager.LoadAllOrdersAsync();
+        await LoadOrdersAsync();
+    }
+
+    private async Task LoadOrdersAsync()
+    {
+        await OrderHistoryManager.LoadOrdersAsync(ActiveView);
         RefreshOrdersView();
     }
 
     private void RefreshOrdersView()
     {
-        var allOrders = OrderHistoryManager.GetPagedOrders();
-        GroupedOrders = allOrders.GroupBy(o => o.OrderStatus).ToList();
+        OrdersToShow = OrderHistoryManager.GetOrdersByStatus(ActiveView);
+        Console.WriteLine($"Displaying {OrdersToShow.Count()} orders for view {ActiveView}");
         StateHasChanged();
     }
 
+
     private void ApplyFilter()
     {
-        OrderHistoryManager.ResetAllPagination();
         RefreshOrdersView();
     }
 
@@ -183,37 +180,25 @@ else
         RefreshOrdersView();
     }
 
-    private void SortByOrderId()
-    {
-        OrderHistoryManager.SortByColumn("OrderId");
-        RefreshOrdersView();
-    }
-
-    private void SortByCreatedAt()
-    {
-        OrderHistoryManager.SortByColumn("CreatedAt");
-        RefreshOrdersView();
-    }
-
-    private void SwitchViewInProgress()
-    {
-        ActiveView = OrderStatus.InProgress;
-        RefreshOrdersView();
-    }
-
-    private void SwitchViewCompleted()
+    private async void SwitchViewCompleted()
     {
         ActiveView = OrderStatus.Completed;
+        await LoadOrdersAsync();
         RefreshOrdersView();
     }
 
-    private bool IsActiveViewInProgress()
+    private async void SwitchViewInProgress()
     {
-        return ActiveView == OrderStatus.InProgress;
+        ActiveView = OrderStatus.InProgress;
+        await LoadOrdersAsync();
+        RefreshOrdersView();
     }
 
-    private bool IsActiveViewCompleted()
-    {
-        return ActiveView == OrderStatus.Completed;
-    }
+
+    private bool IsActiveViewInProgress() => ActiveView == OrderStatus.InProgress;
+    private bool IsActiveViewCompleted() => ActiveView == OrderStatus.Completed;
+
+    private int GetCurrentPage() => ActiveView == OrderStatus.InProgress ? OrderHistoryManager.InProgressPage : OrderHistoryManager.CompletedPage;
+    private bool IsFirstPage() => GetCurrentPage() == 1;
+    private bool IsLastPage() => GetCurrentPage() >= OrderHistoryManager.GetTotalPages(ActiveView);
 }

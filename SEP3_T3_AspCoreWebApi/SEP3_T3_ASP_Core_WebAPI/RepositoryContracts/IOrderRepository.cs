@@ -10,4 +10,6 @@ public interface IOrderRepository
     Task<Order> DeleteOrderAsync(int id);
     Task<List<Order>> GetAllOrders();
     Task<IQueryable<Order>> GetAllOrdersByType(string type);
+    Task<List<Order>> GetOrdersByStatus(OrderStatus status);
+
 }

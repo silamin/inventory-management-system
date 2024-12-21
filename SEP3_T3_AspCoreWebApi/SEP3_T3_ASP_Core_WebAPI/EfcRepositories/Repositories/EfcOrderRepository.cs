@@ -105,6 +105,17 @@ public class EfcOrderRepository : IOrderRepository
             .Include(order => order.CreatedBy)
             .ToListAsync();
     }
+    public async Task<List<Order>> GetOrdersByStatus(OrderStatus status)
+    {
+        return await ctx.Orders
+            .Where(order => order.OrderStatus == status)
+            .Include(order => order.OrderItems)
+            .ThenInclude(oi => oi.Item)
+            .Include(order => order.AssignedUser)
+            .Include(order => order.CreatedBy)
+            .ToListAsync();
+    }
+
 
     public Task<IQueryable<Order>> GetAllOrdersByType(string type)
     {

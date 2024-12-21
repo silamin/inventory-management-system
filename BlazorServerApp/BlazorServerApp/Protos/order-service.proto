@@ -6,12 +6,14 @@ import "user-service.proto";
 import "item-service.proto";
 package orders;
 
-option java_multiple_files = true;
-option java_package = "com.javainuse.orders";
-
 service OrderService {
   rpc createOrder(CreateOrder) returns (CreateOrderResponse);
   rpc getAllOrders(google.protobuf.Empty) returns (OrderList);
+  rpc getOrders(Status) returns (OrderList);
+}
+
+message Status {
+  OrderStatus order_status = 1; // Status to filter orders
 }
 
 message CreateOrderResponse {

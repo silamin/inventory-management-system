@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Orders;
+using Status = Orders.Status;
 
 namespace BlazorServerApp.Infrastructure.Repositories
 {
@@ -50,5 +51,26 @@ namespace BlazorServerApp.Infrastructure.Repositories
                 throw new ApplicationException("Error retrieving all orders", ex);
             }
         }
+
+        public async Task<IEnumerable<Order>> GetOrdersAsync(OrderStatus status)
+        {
+            try
+            {
+                // Wrap the OrderStatus enum value in a Status message
+                var request = new Status { OrderStatus = status };
+
+                // Call the gRPC service and await the response
+                var response = await _client.getOrdersAsync(request);
+
+                // Extract and return the list of orders from the response
+                return response.Orders;
+            }
+            catch (RpcException ex)
+            {
+                // Log and rethrow the exception with an appropriate message
+                throw new ApplicationException("Error retrieving all orders", ex);
+            }
+        }
+
     }
 }

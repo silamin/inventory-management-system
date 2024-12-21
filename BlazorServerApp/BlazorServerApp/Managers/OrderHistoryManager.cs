@@ -1,178 +1,97 @@
 ﻿using BlazorServerApp.Application.UseCases;
 using Orders;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
-namespace BlazorServerApp.Managers
+public class OrderHistoryManager
 {
-    public class OrderHistoryManager
+    private readonly OrderUseCases _orderUseCases;
+
+    public OrderHistoryManager(OrderUseCases orderUseCases)
     {
-        private readonly OrderUseCases _orderUseCases;
+        _orderUseCases = orderUseCases;
+    }
 
-        public OrderHistoryManager(OrderUseCases orderUseCases)
+    // Filters
+    public string SearchQuery { get; set; } = string.Empty;
+    public DateTime? StartDate { get; set; }
+    public DateTime? EndDate { get; set; }
+
+    // Pagination
+    public int PageSize { get; set; } = 3;
+    public int InProgressPage { get; private set; } = 1;
+    public int CompletedPage { get; private set; } = 1;
+
+    // Cached Orders
+    private List<Order> InProgressOrders = new();
+    private List<Order> CompletedOrders = new();
+
+    public async Task LoadOrdersAsync(OrderStatus status)
+    {
+        try
         {
-            _orderUseCases = orderUseCases;
-        }
+            var response = await _orderUseCases.GetOrdersByStatusAsync(status);
 
-        // Filters
-        public OrderStatus? SelectedStatus { get; set; } = null;
-        private string _searchQuery = string.Empty;
-        public string SearchQuery
-        {
-            get => _searchQuery;
-            set => _searchQuery = value;
-        }
-
-        public DateTime? StartDate { get; set; }
-        public DateTime? EndDate { get; set; }
-
-        // Pagination for each status
-        public Dictionary<OrderStatus, int> CurrentPage { get; private set; } = new();
-        public Dictionary<OrderStatus, int> TotalPages { get; private set; } = new();
-        public int PageSize { get; set; } = 3;
-
-        // Sorting
-        public string SortColumn { get; private set; } = "CreatedAt";
-        public bool Ascending { get; private set; } = true;
-
-        // Cached Orders
-        private List<Order> AllOrders = new();
-
-        // Load all orders from the backend
-        public async Task LoadAllOrdersAsync()
-        {
-            AllOrders = (await _orderUseCases.GetAllOrdersAsync()).ToList();
-        }
-
-        public void ResetAllPagination()
-        {
-            CurrentPage.Clear();
-        }
-
-        private IEnumerable<Order> FilterAndSortOrders()
-        {
-            var orders = AllOrders.AsQueryable();
-
-            // Apply filters
-            if (SelectedStatus.HasValue)
-                orders = orders.Where(o => o.OrderStatus == SelectedStatus.Value);
-
-            if (!string.IsNullOrWhiteSpace(SearchQuery))
-                orders = orders.Where(o => o.OrderId.ToString().Contains(SearchQuery, StringComparison.OrdinalIgnoreCase));
-
-            if (StartDate.HasValue)
-                orders = orders.Where(o => o.CreatedAt.ToDateTime() >= StartDate.Value);
-
-            if (EndDate.HasValue)
-                orders = orders.Where(o => o.CreatedAt.ToDateTime() <= EndDate.Value);
-
-            // Apply sorting
-            return SortColumn switch
+            if (status == OrderStatus.InProgress)
             {
-                "OrderId" => Ascending ? orders.OrderBy(o => o.OrderId) : orders.OrderByDescending(o => o.OrderId),
-                "CreatedAt" => Ascending ? orders.OrderBy(o => o.CreatedAt) : orders.OrderByDescending(o => o.CreatedAt),
-                "Status" => Ascending ? orders.OrderBy(o => o.OrderStatus.ToString()) : orders.OrderByDescending(o => o.OrderStatus.ToString()),
-                _ => orders
-            };
-        }
-
-        public IEnumerable<Order> GetPagedOrders()
-        {
-            return AllOrders
-                .GroupBy(o => o.OrderStatus)
-                .SelectMany(g => g.Skip((GetCurrentPage(g.Key) - 1) * PageSize).Take(PageSize));
-        }
-
-        public IEnumerable<Order> GetPagedOrdersByStatus(OrderStatus status)
-        {
-            var filteredOrders = FilterAndSortOrders().Where(o => o.OrderStatus == status).ToList();
-            var currentPage = GetCurrentPage(status);
-            return filteredOrders
-                .Skip((currentPage - 1) * PageSize)
-                .Take(PageSize);
-        }
-
-        public int GetCurrentPage(OrderStatus status)
-        {
-            if (!CurrentPage.ContainsKey(status))
-                CurrentPage[status] = 1;
-            return CurrentPage[status];
-        }
-
-        public int GetTotalPages(OrderStatus status)
-        {
-            if (!TotalPages.ContainsKey(status))
-            {
-                var totalOrders = FilterAndSortOrders().Where(o => o.OrderStatus == status).Count();
-                TotalPages[status] = Math.Max(1, (int)Math.Ceiling(totalOrders / (double)PageSize));
+                InProgressOrders = response.ToList();
             }
-            return TotalPages[status];
-        }
-
-        public void NextPage(OrderStatus status)
-        {
-            var currentPage = GetCurrentPage(status);
-            var totalPages = GetTotalPages(status);
-            if (currentPage < totalPages)
+            else if (status == OrderStatus.Completed)
             {
-                CurrentPage[status] = currentPage + 1;
+                CompletedOrders = response.ToList();
             }
-        }
 
-        public void PreviousPage(OrderStatus status)
+            Console.WriteLine($"Loaded {response.Count()} orders for {status}");
+        }
+        catch (Exception ex)
         {
-            var currentPage = GetCurrentPage(status);
-            if (currentPage > 1)
-            {
-                CurrentPage[status] = currentPage - 1;
-            }
+            Console.WriteLine($"Error loading orders for {status}: {ex.Message}");
         }
+    }
 
-        public bool IsFirstPage(OrderStatus status) => GetCurrentPage(status) == 1;
 
-        public bool IsLastPage(OrderStatus status) => GetCurrentPage(status) >= GetTotalPages(status);
+    public IEnumerable<Order> GetOrdersByStatus(OrderStatus status)
+    {
+        var orders = status == OrderStatus.InProgress ? InProgressOrders : CompletedOrders;
 
-        public void SortByColumn(string columnName)
-        {
-            if (SortColumn == columnName)
-            {
-                // Toggle sorting direction if the same column is clicked
-                Ascending = !Ascending;
-            }
-            else
-            {
-                // Switch to a new sort column and default to ascending
-                SortColumn = columnName;
-                Ascending = true;
-            }
-        }
+        // Ensure filtering logic includes all cases
+        var filteredOrders = orders
+            .Where(o =>
+                (string.IsNullOrEmpty(SearchQuery) || o.OrderId.ToString().Contains(SearchQuery, StringComparison.OrdinalIgnoreCase)) &&
+                (!StartDate.HasValue || o.CreatedAt.ToDateTime() >= StartDate.Value) &&
+                (!EndDate.HasValue || o.CreatedAt.ToDateTime() <= EndDate.Value));
 
-        public string GetSortIcon(string columnName)
-        {
-            if (SortColumn == columnName)
-                return Ascending ? "fas fa-sort-up ms-1" : "fas fa-sort-down ms-1";
-            return "fas fa-sort ms-1 text-muted";
-        }
+        // Log the filtered results (for debugging purposes)
+        Console.WriteLine($"Filtered Orders for {status}: {filteredOrders.Count()}");
 
-        public string GetStatusClass(OrderStatus status)
-        {
-            return status switch
-            {
-                OrderStatus.Completed => "text-success fw-bold",
-                OrderStatus.InProgress => "text-warning fw-bold",
-                _ => string.Empty
-            };
-        }
+        return filteredOrders.OrderBy(o => o.CreatedAt);
+    }
 
-        public void ClearFilters()
-        {
-            SelectedStatus = null;
-            SearchQuery = string.Empty;
-            StartDate = null;
-            EndDate = null;
-            ResetAllPagination();
-        }
+
+    public int GetTotalPages(OrderStatus status)
+    {
+        var orders = status == OrderStatus.InProgress ? InProgressOrders : CompletedOrders;
+        return Math.Max(1, (int)Math.Ceiling(orders.Count / (double)PageSize));
+    }
+
+    public void NextPage(OrderStatus status)
+    {
+        if (status == OrderStatus.InProgress)
+            InProgressPage++;
+        else if (status == OrderStatus.Completed)
+            CompletedPage++;
+    }
+
+    public void PreviousPage(OrderStatus status)
+    {
+        if (status == OrderStatus.InProgress && InProgressPage > 1)
+            InProgressPage--;
+        else if (status == OrderStatus.Completed && CompletedPage > 1)
+            CompletedPage--;
+    }
+
+    public void ClearFilters()
+    {
+        SearchQuery = string.Empty;
+        StartDate = null;
+        EndDate = null;
     }
 }

@@ -88,6 +88,48 @@ namespace SEP3_T3_ASP_Core_WebAPI.Controllers
             }
         }
 
+        [HttpGet("status/{status}")]
+        public async Task<ActionResult<List<GetOrderDTO>>> GetOrdersByStatus([FromRoute] string status)
+        {
+            try
+            {
+                // Parse the provided status
+                if (!Enum.TryParse<OrderStatus>(status, true, out var orderStatus))
+                {
+                    return BadRequest($"Invalid order status: {status}");
+                }
+
+                // Fetch orders by status from the repository
+                var orders = await orderRepository.GetOrdersByStatus(orderStatus);
+
+                // Map orders to DTOs
+                var orderDtos = orders.Select(order => new GetOrderDTO
+                {
+                    OrderId = order.OrderId,
+                    OrderStatus = order.OrderStatus.ToString(),
+                    DeliveryDate = order.DeliveryDate,
+                    CreatedAt = order.CreatedAt,
+                    OrderItems = order.OrderItems.Select(oi => new GetOrderItemDTO
+                    {
+                        itemName = oi.Item.ItemName,
+                        QuantityToPick = oi.QuantityToPick,
+                        TotalQuantity = oi.TotalQuantity,
+                    }).ToList(),
+                    AssignedUser = order.AssignedUser?.UserName,
+                    CreatedBy = order.CreatedBy.UserName
+                }).ToList();
+
+                return Ok(orderDtos);
+            }
+            catch (Exception ex)
+            {
+                // Log and return error response
+                Console.WriteLine($"Error in GetOrdersByStatus: {ex.Message}");
+                return StatusCode(500, "An error occurred while fetching orders by status");
+            }
+        }
+
+
 
         [HttpGet]
         public async Task<ActionResult<List<GetOrderDTO>>> GetAllOrders()
