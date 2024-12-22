@@ -1,12 +1,12 @@
 using Blazored.Toast;
-using BlazorServerApp.Infrastructure.Repositories;
-using BlazorServerApp.Application.UseCases;
 using BlazorServerApp.Application.Interfaces;
+using BlazorServerApp.Application.UseCases;
+using BlazorServerApp.Infrastructure.Repositories;
 using BlazorServerApp.Managers;
+using Items;
 using Microsoft.AspNetCore.Components.Authorization;
 using Orders;
 using Users;
-using Items;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,47 +17,48 @@ builder.Services.AddServerSideBlazor();
 
 builder.Services.AddAuthorizationCore();
 
-// Register the gRPC client for AuthService
+// Register the gRPC clients
 builder.Services.AddGrpcClient<AuthService.AuthServiceClient>(options =>
 {
-    options.Address = new Uri("http://localhost:8090"); // Replace with your Spring Boot gRPC server URL
+    options.Address = new Uri("http://localhost:8090");
 });
 
 builder.Services.AddGrpcClient<ItemService.ItemServiceClient>(options =>
 {
-    options.Address = new Uri("http://localhost:8090"); // Replace with your Spring Boot gRPC server URL
+    options.Address = new Uri("http://localhost:8090");
 });
 
 builder.Services.AddGrpcClient<OrderService.OrderServiceClient>(options =>
 {
-    options.Address = new Uri("http://localhost:8090"); // Replace with your Spring Boot gRPC server URL
+    options.Address = new Uri("http://localhost:8090");
 });
 
 builder.Services.AddGrpcClient<UserService.UserServiceClient>(options =>
 {
-    options.Address = new Uri("http://localhost:8090"); // Ensure this is the correct URL
+    options.Address = new Uri("http://localhost:8090");
 });
 
-// Register Repositories, UseCases, and Managers using Dependency Injection
-builder.Services.AddScoped<IAuthRepository, AuthRepository>(); // Register IAuthRepository
-builder.Services.AddScoped<AuthUseCases>(); // Register Auth Use Case
-builder.Services.AddScoped<LoginManager>(); // Register LoginManager
-
-builder.Services.AddScoped<IItemRepository, ItemRepository>(); // Register IItemRepository to use ItemRepository
-builder.Services.AddScoped<IOrderRepository, OrderRepository>(); // Register IOrderRepository to use OrderRepository
-
-builder.Services.AddScoped<ItemUseCases>(); // Register ItemUseCases
-builder.Services.AddScoped<OrderUseCases>(); // Register OrderUseCases
-
-builder.Services.AddScoped<InventoryManager>(); // Register InventoryManager
+// Register the CustomAuthenticationStateProvider
+builder.Services.AddScoped<CustomAuthenticationStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
 
-// Register OrderHistoryManager
-builder.Services.AddScoped<OrderHistoryManager>(); // Register OrderHistoryManager
+// Register Repositories, UseCases, and Managers
+builder.Services.AddScoped<IAuthRepository, AuthRepository>();
+builder.Services.AddScoped<AuthUseCases>();
+builder.Services.AddScoped<LoginManager>();
 
-builder.Services.AddScoped<IUserRepository, UserRepository>(); // Register IUserRepository with UserRepository
-builder.Services.AddScoped<UserUseCases>(); // Register UserUseCases
-builder.Services.AddScoped<UserManager>(); // Register UserManager
+builder.Services.AddScoped<IItemRepository, ItemRepository>();
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+
+builder.Services.AddScoped<ItemUseCases>();
+builder.Services.AddScoped<OrderUseCases>();
+
+builder.Services.AddScoped<InventoryManager>();
+builder.Services.AddScoped<OrderHistoryManager>();
+
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<UserUseCases>();
+builder.Services.AddScoped<UserManager>();
 
 var app = builder.Build();
 

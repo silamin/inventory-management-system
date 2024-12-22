@@ -94,7 +94,16 @@ public class CustomAuthenticationStateProvider : AuthenticationStateProvider
 
         return claims;
     }
+    public async Task<string?> GetTokenAsync()
+    {
+        if (string.IsNullOrEmpty(_cachedToken))
+        {
+            var tokenResult = await _protectedSessionStore.GetAsync<string>("authToken");
+            _cachedToken = tokenResult.Success ? tokenResult.Value : null;
+        }
 
+        return _cachedToken;
+    }
 
 
     private string PadBase64(string base64)

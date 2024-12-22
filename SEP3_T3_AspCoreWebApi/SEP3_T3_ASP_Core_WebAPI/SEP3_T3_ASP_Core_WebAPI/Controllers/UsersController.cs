@@ -1,4 +1,5 @@
 ﻿using Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SEP3_T3_ASP_Core_WebAPI.ApiContracts.UserDto;
@@ -8,6 +9,7 @@ namespace SEP3_T3_ASP_Core_WebAPI.Controllers;
 
 [ApiController]
 [Route("[controller]")]
+[Authorize(Roles = "INVENTORY_MANAGER")]
 public class UsersController: ControllerBase
 {
     private readonly IUserRepository userRepo;

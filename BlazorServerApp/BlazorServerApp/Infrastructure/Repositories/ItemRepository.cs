@@ -1,24 +1,39 @@
 ﻿using BlazorServerApp.Application.Interfaces;
 using Grpc.Core;
 using Items;
+using System.Threading.Tasks;
 
 namespace BlazorServerApp.Infrastructure.Repositories
 {
     public class ItemRepository : IItemRepository
     {
         private readonly ItemService.ItemServiceClient _client;
+        private readonly CustomAuthenticationStateProvider _authStateProvider;
 
-        public ItemRepository(ItemService.ItemServiceClient client)
+        public ItemRepository(ItemService.ItemServiceClient client, CustomAuthenticationStateProvider authStateProvider)
         {
+            _authStateProvider = authStateProvider;
             _client = client;
+        }
+
+        private async Task<CallOptions> GetAuthenticatedCallOptionsAsync()
+        {
+            var token = await _authStateProvider.GetTokenAsync();
+            var metadata = new Metadata();
+            if (!string.IsNullOrEmpty(token))
+            {
+                metadata.Add("Authorization", $"Bearer {token}");
+            }
+
+            return new CallOptions(metadata);
         }
 
         public async Task<Item> CreateItemAsync(CreateItem itemDTO)
         {
             try
             {
-                var response = await _client.createItemAsync(itemDTO);
-
+                var callOptions = await GetAuthenticatedCallOptionsAsync();
+                var response = await _client.createItemAsync(itemDTO, callOptions);
                 return response;
             }
             catch (RpcException ex)
@@ -31,9 +46,8 @@ namespace BlazorServerApp.Infrastructure.Repositories
         {
             try
             {
-
-                // Step 2: Call the gRPC deleteItem method
-                await _client.deleteItemAsync(itemToDelete);
+                var callOptions = await GetAuthenticatedCallOptionsAsync();
+                await _client.deleteItemAsync(itemToDelete, callOptions);
             }
             catch (RpcException ex)
             {
@@ -41,23 +55,25 @@ namespace BlazorServerApp.Infrastructure.Repositories
             }
         }
 
-
         public async Task EditItemAsync(Item item)
         {
             try
             {
-                var response = await _client.editItemAsync(item);
+                var callOptions = await GetAuthenticatedCallOptionsAsync();
+                await _client.editItemAsync(item, callOptions);
             }
             catch (RpcException ex)
             {
                 throw new ApplicationException("Error editing item", ex);
             }
         }
+
         public async Task<IEnumerable<Item>> GetAllItemsAsync()
         {
             try
             {
-                var response = await _client.getAllItemsAsync(new Google.Protobuf.WellKnownTypes.Empty());
+                var callOptions = await GetAuthenticatedCallOptionsAsync();
+                var response = await _client.getAllItemsAsync(new Google.Protobuf.WellKnownTypes.Empty(), callOptions);
                 return response.Items.Select(item => new Item
                 {
                     ItemId = item.ItemId,
@@ -71,9 +87,5 @@ namespace BlazorServerApp.Infrastructure.Repositories
                 throw new ApplicationException("Error retrieving all items", ex);
             }
         }
-
-
-
-
     }
 }
