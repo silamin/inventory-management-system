@@ -105,6 +105,19 @@ private static final long serialVersionUID = 0L;
 
             break;
           }
+          case 66: {
+            com.google.protobuf.Timestamp.Builder subBuilder = null;
+            if (completedAt_ != null) {
+              subBuilder = completedAt_.toBuilder();
+            }
+            completedAt_ = input.readMessage(com.google.protobuf.Timestamp.parser(), extensionRegistry);
+            if (subBuilder != null) {
+              subBuilder.mergeFrom(completedAt_);
+              completedAt_ = subBuilder.buildPartial();
+            }
+
+            break;
+          }
           default: {
             if (!parseUnknownFieldProto3(
                 input, unknownFields, extensionRegistry, tag)) {
@@ -312,6 +325,27 @@ private static final long serialVersionUID = 0L;
     return getDeliveryDate();
   }
 
+  public static final int COMPLETED_AT_FIELD_NUMBER = 8;
+  private com.google.protobuf.Timestamp completedAt_;
+  /**
+   * <code>.google.protobuf.Timestamp completed_at = 8;</code>
+   */
+  public boolean hasCompletedAt() {
+    return completedAt_ != null;
+  }
+  /**
+   * <code>.google.protobuf.Timestamp completed_at = 8;</code>
+   */
+  public com.google.protobuf.Timestamp getCompletedAt() {
+    return completedAt_ == null ? com.google.protobuf.Timestamp.getDefaultInstance() : completedAt_;
+  }
+  /**
+   * <code>.google.protobuf.Timestamp completed_at = 8;</code>
+   */
+  public com.google.protobuf.TimestampOrBuilder getCompletedAtOrBuilder() {
+    return getCompletedAt();
+  }
+
   private byte memoizedIsInitialized = -1;
   @java.lang.Override
   public final boolean isInitialized() {
@@ -341,11 +375,14 @@ private static final long serialVersionUID = 0L;
     if (!getCreatedByUserBytes().isEmpty()) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 5, createdByUser_);
     }
-    if (orderStatus_ != com.javainuse.orders.OrderStatus.COMPLETED.getNumber()) {
+    if (orderStatus_ != com.javainuse.orders.OrderStatus.NOT_STARTED.getNumber()) {
       output.writeEnum(6, orderStatus_);
     }
     if (deliveryDate_ != null) {
       output.writeMessage(7, getDeliveryDate());
+    }
+    if (completedAt_ != null) {
+      output.writeMessage(8, getCompletedAt());
     }
     unknownFields.writeTo(output);
   }
@@ -374,13 +411,17 @@ private static final long serialVersionUID = 0L;
     if (!getCreatedByUserBytes().isEmpty()) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(5, createdByUser_);
     }
-    if (orderStatus_ != com.javainuse.orders.OrderStatus.COMPLETED.getNumber()) {
+    if (orderStatus_ != com.javainuse.orders.OrderStatus.NOT_STARTED.getNumber()) {
       size += com.google.protobuf.CodedOutputStream
         .computeEnumSize(6, orderStatus_);
     }
     if (deliveryDate_ != null) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(7, getDeliveryDate());
+    }
+    if (completedAt_ != null) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeMessageSize(8, getCompletedAt());
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -417,6 +458,11 @@ private static final long serialVersionUID = 0L;
       result = result && getDeliveryDate()
           .equals(other.getDeliveryDate());
     }
+    result = result && (hasCompletedAt() == other.hasCompletedAt());
+    if (hasCompletedAt()) {
+      result = result && getCompletedAt()
+          .equals(other.getCompletedAt());
+    }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -447,6 +493,10 @@ private static final long serialVersionUID = 0L;
     if (hasDeliveryDate()) {
       hash = (37 * hash) + DELIVERY_DATE_FIELD_NUMBER;
       hash = (53 * hash) + getDeliveryDate().hashCode();
+    }
+    if (hasCompletedAt()) {
+      hash = (37 * hash) + COMPLETED_AT_FIELD_NUMBER;
+      hash = (53 * hash) + getCompletedAt().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -608,6 +658,12 @@ private static final long serialVersionUID = 0L;
         deliveryDate_ = null;
         deliveryDateBuilder_ = null;
       }
+      if (completedAtBuilder_ == null) {
+        completedAt_ = null;
+      } else {
+        completedAt_ = null;
+        completedAtBuilder_ = null;
+      }
       return this;
     }
 
@@ -658,6 +714,11 @@ private static final long serialVersionUID = 0L;
         result.deliveryDate_ = deliveryDate_;
       } else {
         result.deliveryDate_ = deliveryDateBuilder_.build();
+      }
+      if (completedAtBuilder_ == null) {
+        result.completedAt_ = completedAt_;
+      } else {
+        result.completedAt_ = completedAtBuilder_.build();
       }
       result.bitField0_ = to_bitField0_;
       onBuilt();
@@ -753,6 +814,9 @@ private static final long serialVersionUID = 0L;
       }
       if (other.hasDeliveryDate()) {
         mergeDeliveryDate(other.getDeliveryDate());
+      }
+      if (other.hasCompletedAt()) {
+        mergeCompletedAt(other.getCompletedAt());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -1465,6 +1529,123 @@ private static final long serialVersionUID = 0L;
         deliveryDate_ = null;
       }
       return deliveryDateBuilder_;
+    }
+
+    private com.google.protobuf.Timestamp completedAt_ = null;
+    private com.google.protobuf.SingleFieldBuilderV3<
+        com.google.protobuf.Timestamp, com.google.protobuf.Timestamp.Builder, com.google.protobuf.TimestampOrBuilder> completedAtBuilder_;
+    /**
+     * <code>.google.protobuf.Timestamp completed_at = 8;</code>
+     */
+    public boolean hasCompletedAt() {
+      return completedAtBuilder_ != null || completedAt_ != null;
+    }
+    /**
+     * <code>.google.protobuf.Timestamp completed_at = 8;</code>
+     */
+    public com.google.protobuf.Timestamp getCompletedAt() {
+      if (completedAtBuilder_ == null) {
+        return completedAt_ == null ? com.google.protobuf.Timestamp.getDefaultInstance() : completedAt_;
+      } else {
+        return completedAtBuilder_.getMessage();
+      }
+    }
+    /**
+     * <code>.google.protobuf.Timestamp completed_at = 8;</code>
+     */
+    public Builder setCompletedAt(com.google.protobuf.Timestamp value) {
+      if (completedAtBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        completedAt_ = value;
+        onChanged();
+      } else {
+        completedAtBuilder_.setMessage(value);
+      }
+
+      return this;
+    }
+    /**
+     * <code>.google.protobuf.Timestamp completed_at = 8;</code>
+     */
+    public Builder setCompletedAt(
+        com.google.protobuf.Timestamp.Builder builderForValue) {
+      if (completedAtBuilder_ == null) {
+        completedAt_ = builderForValue.build();
+        onChanged();
+      } else {
+        completedAtBuilder_.setMessage(builderForValue.build());
+      }
+
+      return this;
+    }
+    /**
+     * <code>.google.protobuf.Timestamp completed_at = 8;</code>
+     */
+    public Builder mergeCompletedAt(com.google.protobuf.Timestamp value) {
+      if (completedAtBuilder_ == null) {
+        if (completedAt_ != null) {
+          completedAt_ =
+            com.google.protobuf.Timestamp.newBuilder(completedAt_).mergeFrom(value).buildPartial();
+        } else {
+          completedAt_ = value;
+        }
+        onChanged();
+      } else {
+        completedAtBuilder_.mergeFrom(value);
+      }
+
+      return this;
+    }
+    /**
+     * <code>.google.protobuf.Timestamp completed_at = 8;</code>
+     */
+    public Builder clearCompletedAt() {
+      if (completedAtBuilder_ == null) {
+        completedAt_ = null;
+        onChanged();
+      } else {
+        completedAt_ = null;
+        completedAtBuilder_ = null;
+      }
+
+      return this;
+    }
+    /**
+     * <code>.google.protobuf.Timestamp completed_at = 8;</code>
+     */
+    public com.google.protobuf.Timestamp.Builder getCompletedAtBuilder() {
+      
+      onChanged();
+      return getCompletedAtFieldBuilder().getBuilder();
+    }
+    /**
+     * <code>.google.protobuf.Timestamp completed_at = 8;</code>
+     */
+    public com.google.protobuf.TimestampOrBuilder getCompletedAtOrBuilder() {
+      if (completedAtBuilder_ != null) {
+        return completedAtBuilder_.getMessageOrBuilder();
+      } else {
+        return completedAt_ == null ?
+            com.google.protobuf.Timestamp.getDefaultInstance() : completedAt_;
+      }
+    }
+    /**
+     * <code>.google.protobuf.Timestamp completed_at = 8;</code>
+     */
+    private com.google.protobuf.SingleFieldBuilderV3<
+        com.google.protobuf.Timestamp, com.google.protobuf.Timestamp.Builder, com.google.protobuf.TimestampOrBuilder> 
+        getCompletedAtFieldBuilder() {
+      if (completedAtBuilder_ == null) {
+        completedAtBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+            com.google.protobuf.Timestamp, com.google.protobuf.Timestamp.Builder, com.google.protobuf.TimestampOrBuilder>(
+                getCompletedAt(),
+                getParentForChildren(),
+                isClean());
+        completedAt_ = null;
+      }
+      return completedAtBuilder_;
     }
     @java.lang.Override
     public final Builder setUnknownFields(

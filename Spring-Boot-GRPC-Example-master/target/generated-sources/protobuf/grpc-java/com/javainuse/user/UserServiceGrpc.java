@@ -123,36 +123,36 @@ public final class UserServiceGrpc {
      return getDeleteUserMethod;
   }
 
-  private static volatile io.grpc.MethodDescriptor<com.google.protobuf.Empty,
-      com.javainuse.user.UserList> getGetAllUsersMethod;
+  private static volatile io.grpc.MethodDescriptor<com.javainuse.user.Role,
+      com.javainuse.user.UserList> getGetUsersMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "getAllUsers",
-      requestType = com.google.protobuf.Empty.class,
+      fullMethodName = SERVICE_NAME + '/' + "getUsers",
+      requestType = com.javainuse.user.Role.class,
       responseType = com.javainuse.user.UserList.class,
       methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<com.google.protobuf.Empty,
-      com.javainuse.user.UserList> getGetAllUsersMethod() {
-    io.grpc.MethodDescriptor<com.google.protobuf.Empty, com.javainuse.user.UserList> getGetAllUsersMethod;
-    if ((getGetAllUsersMethod = UserServiceGrpc.getGetAllUsersMethod) == null) {
+  public static io.grpc.MethodDescriptor<com.javainuse.user.Role,
+      com.javainuse.user.UserList> getGetUsersMethod() {
+    io.grpc.MethodDescriptor<com.javainuse.user.Role, com.javainuse.user.UserList> getGetUsersMethod;
+    if ((getGetUsersMethod = UserServiceGrpc.getGetUsersMethod) == null) {
       synchronized (UserServiceGrpc.class) {
-        if ((getGetAllUsersMethod = UserServiceGrpc.getGetAllUsersMethod) == null) {
-          UserServiceGrpc.getGetAllUsersMethod = getGetAllUsersMethod = 
-              io.grpc.MethodDescriptor.<com.google.protobuf.Empty, com.javainuse.user.UserList>newBuilder()
+        if ((getGetUsersMethod = UserServiceGrpc.getGetUsersMethod) == null) {
+          UserServiceGrpc.getGetUsersMethod = getGetUsersMethod = 
+              io.grpc.MethodDescriptor.<com.javainuse.user.Role, com.javainuse.user.UserList>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(
-                  "users.UserService", "getAllUsers"))
+                  "users.UserService", "getUsers"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  com.google.protobuf.Empty.getDefaultInstance()))
+                  com.javainuse.user.Role.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   com.javainuse.user.UserList.getDefaultInstance()))
-                  .setSchemaDescriptor(new UserServiceMethodDescriptorSupplier("getAllUsers"))
+                  .setSchemaDescriptor(new UserServiceMethodDescriptorSupplier("getUsers"))
                   .build();
           }
         }
      }
-     return getGetAllUsersMethod;
+     return getGetUsersMethod;
   }
 
   /**
@@ -205,9 +205,9 @@ public final class UserServiceGrpc {
 
     /**
      */
-    public void getAllUsers(com.google.protobuf.Empty request,
+    public void getUsers(com.javainuse.user.Role request,
         io.grpc.stub.StreamObserver<com.javainuse.user.UserList> responseObserver) {
-      asyncUnimplementedUnaryCall(getGetAllUsersMethod(), responseObserver);
+      asyncUnimplementedUnaryCall(getGetUsersMethod(), responseObserver);
     }
 
     @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
@@ -234,12 +234,12 @@ public final class UserServiceGrpc {
                 com.google.protobuf.Empty>(
                   this, METHODID_DELETE_USER)))
           .addMethod(
-            getGetAllUsersMethod(),
+            getGetUsersMethod(),
             asyncUnaryCall(
               new MethodHandlers<
-                com.google.protobuf.Empty,
+                com.javainuse.user.Role,
                 com.javainuse.user.UserList>(
-                  this, METHODID_GET_ALL_USERS)))
+                  this, METHODID_GET_USERS)))
           .build();
     }
   }
@@ -288,10 +288,10 @@ public final class UserServiceGrpc {
 
     /**
      */
-    public void getAllUsers(com.google.protobuf.Empty request,
+    public void getUsers(com.javainuse.user.Role request,
         io.grpc.stub.StreamObserver<com.javainuse.user.UserList> responseObserver) {
       asyncUnaryCall(
-          getChannel().newCall(getGetAllUsersMethod(), getCallOptions()), request, responseObserver);
+          getChannel().newCall(getGetUsersMethod(), getCallOptions()), request, responseObserver);
     }
   }
 
@@ -336,9 +336,9 @@ public final class UserServiceGrpc {
 
     /**
      */
-    public com.javainuse.user.UserList getAllUsers(com.google.protobuf.Empty request) {
+    public com.javainuse.user.UserList getUsers(com.javainuse.user.Role request) {
       return blockingUnaryCall(
-          getChannel(), getGetAllUsersMethod(), getCallOptions(), request);
+          getChannel(), getGetUsersMethod(), getCallOptions(), request);
     }
   }
 
@@ -386,17 +386,17 @@ public final class UserServiceGrpc {
 
     /**
      */
-    public com.google.common.util.concurrent.ListenableFuture<com.javainuse.user.UserList> getAllUsers(
-        com.google.protobuf.Empty request) {
+    public com.google.common.util.concurrent.ListenableFuture<com.javainuse.user.UserList> getUsers(
+        com.javainuse.user.Role request) {
       return futureUnaryCall(
-          getChannel().newCall(getGetAllUsersMethod(), getCallOptions()), request);
+          getChannel().newCall(getGetUsersMethod(), getCallOptions()), request);
     }
   }
 
   private static final int METHODID_ADD_USER = 0;
   private static final int METHODID_EDIT_USER = 1;
   private static final int METHODID_DELETE_USER = 2;
-  private static final int METHODID_GET_ALL_USERS = 3;
+  private static final int METHODID_GET_USERS = 3;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -427,8 +427,8 @@ public final class UserServiceGrpc {
           serviceImpl.deleteUser((com.javainuse.user.DeleteUser) request,
               (io.grpc.stub.StreamObserver<com.google.protobuf.Empty>) responseObserver);
           break;
-        case METHODID_GET_ALL_USERS:
-          serviceImpl.getAllUsers((com.google.protobuf.Empty) request,
+        case METHODID_GET_USERS:
+          serviceImpl.getUsers((com.javainuse.user.Role) request,
               (io.grpc.stub.StreamObserver<com.javainuse.user.UserList>) responseObserver);
           break;
         default:
@@ -495,7 +495,7 @@ public final class UserServiceGrpc {
               .addMethod(getAddUserMethod())
               .addMethod(getEditUserMethod())
               .addMethod(getDeleteUserMethod())
-              .addMethod(getGetAllUsersMethod())
+              .addMethod(getGetUsersMethod())
               .build();
         }
       }

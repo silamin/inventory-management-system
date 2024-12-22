@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.netty.http.client.HttpClient;
 
 import java.util.Map;
@@ -38,36 +39,54 @@ public class AuthService extends AuthServiceGrpc.AuthServiceImplBase {
                 "password", request.getPassword()
         );
 
-        try {
-            webClient.post()
-                    .uri("/login")
-                    .bodyValue(requestBody)
-                    .retrieve()
-                    .bodyToMono(String.class) // Assuming the response is a String JSON response
-                    .doOnNext(responseString -> {
-                        logger.info("Response body from REST API: {}", responseString);
-                    })
-                    .map(this::extractTokenFromResponse) // Extract the token from the response
-                    .doOnNext(token -> {
-                        logger.info("Extracted Token: {}", token);
-                    })
-                    .doOnError(throwable -> {
-                        logger.error("Error during login request: {}", throwable.getMessage(), throwable);
-                        responseObserver.onError(throwable);
-                    })
-                    .subscribe(token -> {
-                        LoginResponse response = LoginResponse.newBuilder()
-                                .setToken(token)
-                                .build();
+        webClient.post()
+                .uri("/login")
+                .bodyValue(requestBody)
+                .retrieve()
+                .bodyToMono(String.class) // Assuming the response is a String JSON response
+                .map(this::extractTokenFromResponse) // Extract the token from the response
+                .subscribe(
+                        token -> {
+                            LoginResponse response = LoginResponse.newBuilder()
+                                    .setToken(token)
+                                    .build();
 
-                        responseObserver.onNext(response);
-                        responseObserver.onCompleted();
-                    });
-        } catch (Exception e) {
-            logger.error("Unexpected error during login: {}", e.getMessage(), e);
-            responseObserver.onError(e);
-        }
+                            responseObserver.onNext(response);
+                            responseObserver.onCompleted();
+                        },
+                        throwable -> {
+                            if (throwable instanceof WebClientResponseException) {
+                                WebClientResponseException webClientException = (WebClientResponseException) throwable;
+                                if (webClientException.getStatusCode().is4xxClientError()) {
+                                    // Handle client error gracefully (e.g., 401 Unauthorized)
+                                    logger.error("Authentication failed: {}", webClientException.getMessage());
+                                    responseObserver.onError(
+                                            io.grpc.Status.UNAUTHENTICATED
+                                                    .withDescription("Invalid username or password.")
+                                                    .asRuntimeException()
+                                    );
+                                } else {
+                                    // Handle other errors
+                                    logger.error("Error during login request: {}", webClientException.getMessage(), webClientException);
+                                    responseObserver.onError(
+                                            io.grpc.Status.INTERNAL
+                                                    .withDescription("An unexpected error occurred.")
+                                                    .asRuntimeException()
+                                    );
+                                }
+                            } else {
+                                // Handle non-WebClient exceptions
+                                logger.error("Unexpected error during login: {}", throwable.getMessage(), throwable);
+                                responseObserver.onError(
+                                        io.grpc.Status.INTERNAL
+                                                .withDescription("An unexpected error occurred.")
+                                                .asRuntimeException()
+                                );
+                            }
+                        }
+                );
     }
+
 
     /**
      * Extracts the token from the response JSON.

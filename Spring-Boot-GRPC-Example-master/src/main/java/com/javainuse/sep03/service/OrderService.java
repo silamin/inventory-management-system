@@ -38,11 +38,21 @@ public class OrderService extends OrderServiceGrpc.OrderServiceImplBase {
             ))
             .build();
 
-    /**
-     * Handles creating a new order
-     */
+    // Retrieve the token from the gRPC context
+    private String getTokenFromContext() {
+        return AuthInterceptor.AUTH_CONTEXT_KEY.get();
+    }
+
+    @Override
     public void createOrder(CreateOrder request, StreamObserver<CreateOrderResponse> responseObserver) {
         logger.info("Received request to create order");
+
+        String token = getTokenFromContext();
+        if (token == null) {
+            logger.error("Authorization token is missing");
+            responseObserver.onError(new RuntimeException("Authorization token is missing"));
+            return;
+        }
 
         try {
             String deliveryDate = Instant.ofEpochSecond(request.getDeliveryDate().getSeconds(), request.getDeliveryDate().getNanos()).toString();
@@ -60,6 +70,7 @@ public class OrderService extends OrderServiceGrpc.OrderServiceImplBase {
 
             webClient.post()
                     .uri("/")
+                    .headers(headers -> headers.setBearerAuth(token)) // Set Bearer token
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(Mono.just(createOrderDTO), OrderData.class)
                     .retrieve()
@@ -88,94 +99,30 @@ public class OrderService extends OrderServiceGrpc.OrderServiceImplBase {
         }
     }
 
-    /**
-     * Handles fetching all orders
-     */
     @Override
-    public void getAllOrders(Empty request, StreamObserver<OrderList> responseObserver) {
-        logger.info("Fetching all orders from REST API");
+    public void getOrders(Status request, StreamObserver<OrderList> responseObserver) {
+        String status = request.getOrderStatus().name();
+        logger.info("Fetching orders with status: {}", status);
+
+        String token = getTokenFromContext();
+        if (token == null) {
+            logger.error("Authorization token is missing");
+            responseObserver.onError(new RuntimeException("Authorization token is missing"));
+            return;
+        }
 
         webClient.get()
-                .uri("/")
+                .uri(uriBuilder -> uriBuilder
+                        .path("/status/{status}")
+                        .build(status))
+                .headers(headers -> headers.setBearerAuth(token)) // Set Bearer token
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
                 .bodyToMono(List.class)
                 .subscribe(
                         orders -> {
                             try {
-                                List<Order> grpcOrderList = ((List<?>) orders).stream().map(order -> {
-                                    try {
-                                        Map<String, Object> orderMap = (Map<String, Object>) order;
-
-                                        List<GetOrderItem> orderItems = ((List<?>) orderMap.getOrDefault("orderItems", List.of()))
-                                                .stream().map(orderItem -> {
-                                                    try {
-                                                        Map<String, Object> orderItemMap = (Map<String, Object>) orderItem;
-                                                        String itemName = Optional.ofNullable((String) orderItemMap.get("itemName")).orElse("Unknown");
-                                                        int quantityToPick = ((Number) orderItemMap.getOrDefault("quantityToPick", 0)).intValue();
-                                                        int totalQuantity = ((Number) orderItemMap.getOrDefault("totalQuantity", 0)).intValue();
-
-                                                        return GetOrderItem.newBuilder()
-                                                                .setItemName(itemName)
-                                                                .setQuantityToPick(quantityToPick)
-                                                                .setTotalQuantity(totalQuantity)
-                                                                .build();
-                                                    } catch (Exception e) {
-                                                        logger.error("Error while processing order item: {}", orderItem, e);
-                                                        throw e;
-                                                    }
-                                                }).collect(Collectors.toList());
-
-                                        int orderId = ((Number) orderMap.getOrDefault("orderId", 0)).intValue();
-                                        String assignedUser = Optional.ofNullable((String) orderMap.get("assignedUser")).orElse("Unassigned");
-                                        String createdBy = Optional.ofNullable((String) orderMap.get("createdBy")).orElse("Unknown");
-
-                                        Instant deliveryDate = Optional.ofNullable(orderMap.get("deliveryDate"))
-                                                .map(dateStr -> {
-                                                    try {
-                                                        return Instant.parse((String) dateStr);
-                                                    } catch (Exception e) {
-                                                        logger.warn("Invalid delivery date format: {}", dateStr, e);
-                                                        return null;
-                                                    }
-                                                }).orElse(null);
-
-                                        Instant createdAt = Optional.ofNullable(orderMap.get("createdAt"))
-                                                .map(dateStr -> {
-                                                    try {
-                                                        return Instant.parse((String) dateStr);
-                                                    } catch (Exception e) {
-                                                        logger.warn("Invalid created at date format: {}", dateStr, e);
-                                                        return null;
-                                                    }
-                                                }).orElse(null);
-
-                                        return Order.newBuilder()
-                                                .setOrderId(orderId)
-                                                .addAllOrderItems(orderItems)
-                                                .setAssignedUser(assignedUser)
-                                                .setCreatedByUser(createdBy)
-                                                .setDeliveryDate(deliveryDate != null ?
-                                                        com.google.protobuf.Timestamp.newBuilder()
-                                                                .setSeconds(deliveryDate.getEpochSecond())
-                                                                .setNanos(deliveryDate.getNano())
-                                                                .build() :
-                                                        com.google.protobuf.Timestamp.getDefaultInstance())
-                                                .setCreatedAt(createdAt != null ?
-                                                        com.google.protobuf.Timestamp.newBuilder()
-                                                                .setSeconds(createdAt.getEpochSecond())
-                                                                .setNanos(createdAt.getNano())
-                                                                .build() :
-                                                        com.google.protobuf.Timestamp.getDefaultInstance())
-                                                .build();
-                                    } catch (Exception e) {
-                                        logger.error("Error while processing order: {}", order, e);
-                                        throw e;
-                                    }
-                                }).collect(Collectors.toList());
-
-                                logger.info("Successfully fetched {} orders", grpcOrderList.size());
-
+                                List<Order> grpcOrderList = mapOrdersFromApiResponse(orders);
                                 OrderList orderList = OrderList.newBuilder().addAllOrders(grpcOrderList).build();
                                 responseObserver.onNext(orderList);
                                 responseObserver.onCompleted();
@@ -185,12 +132,76 @@ public class OrderService extends OrderServiceGrpc.OrderServiceImplBase {
                             }
                         },
                         error -> {
-                            logger.error("Error occurred while fetching orders from REST API", error);
+                            logger.error("Error occurred while fetching orders by status from REST API", error);
                             responseObserver.onError(error);
                         }
                 );
     }
-/**
+
+    private List<Order> mapOrdersFromApiResponse(Object apiResponse) {
+        return ((List<?>) apiResponse).stream().map(order -> {
+            try {
+                Map<String, Object> orderMap = (Map<String, Object>) order;
+
+                List<GetOrderItem> orderItems = ((List<?>) orderMap.getOrDefault("orderItems", List.of()))
+                        .stream().map(orderItem -> {
+                            Map<String, Object> orderItemMap = (Map<String, Object>) orderItem;
+                            return GetOrderItem.newBuilder()
+                                    .setItemName(Optional.ofNullable((String) orderItemMap.get("itemName")).orElse("Unknown"))
+                                    .setQuantityToPick(((Number) orderItemMap.getOrDefault("quantityToPick", 0)).intValue())
+                                    .setTotalQuantity(((Number) orderItemMap.getOrDefault("totalQuantity", 0)).intValue())
+                                    .build();
+                        }).collect(Collectors.toList());
+
+                int orderId = ((Number) orderMap.getOrDefault("orderId", 0)).intValue();
+                String assignedUser = Optional.ofNullable((String) orderMap.get("assignedUser")).orElse("Unassigned");
+                String createdBy = Optional.ofNullable((String) orderMap.get("createdBy")).orElse("Unknown");
+
+                Instant deliveryDate = Optional.ofNullable(orderMap.get("deliveryDate"))
+                        .map(dateStr -> Instant.parse((String) dateStr))
+                        .orElse(null);
+
+                Instant createdAt = Optional.ofNullable(orderMap.get("createdAt"))
+                        .map(dateStr -> Instant.parse((String) dateStr))
+                        .orElse(null);
+
+                Instant completedAt = Optional.ofNullable(orderMap.get("completedAt"))
+                        .map(dateStr -> Instant.parse((String) dateStr))
+                        .orElse(null);
+
+                return Order.newBuilder()
+                        .setOrderId(orderId)
+                        .addAllOrderItems(orderItems)
+                        .setAssignedUser(assignedUser)
+                        .setCreatedByUser(createdBy)
+                        .setOrderStatus(OrderStatus.valueOf(orderMap.get("orderStatus").toString()))
+                        .setDeliveryDate(deliveryDate != null ?
+                                com.google.protobuf.Timestamp.newBuilder()
+                                        .setSeconds(deliveryDate.getEpochSecond())
+                                        .setNanos(deliveryDate.getNano())
+                                        .build() :
+                                com.google.protobuf.Timestamp.getDefaultInstance())
+                        .setCreatedAt(createdAt != null ?
+                                com.google.protobuf.Timestamp.newBuilder()
+                                        .setSeconds(createdAt.getEpochSecond())
+                                        .setNanos(createdAt.getNano())
+                                        .build() :
+                                com.google.protobuf.Timestamp.getDefaultInstance())
+                        .setCompletedAt(completedAt != null ?
+                                com.google.protobuf.Timestamp.newBuilder()
+                                        .setSeconds(completedAt.getEpochSecond())
+                                        .setNanos(completedAt.getNano())
+                                        .build() :
+                                com.google.protobuf.Timestamp.getDefaultInstance())
+                        .build();
+            } catch (Exception e) {
+                logger.error("Error while processing order: {}", order, e);
+                throw e;
+            }
+        }).collect(Collectors.toList());
+    }
+
+    /**
      * Data structure for posting orders
      */
     public static class OrderData {
@@ -205,6 +216,10 @@ public class OrderService extends OrderServiceGrpc.OrderServiceImplBase {
 
         @JsonProperty("createdAt")
         private String createdAt;
+
+        @JsonProperty("completedAt")
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        private String completedAt;
 
         public OrderData(String deliveryDate, List<OrderItemData> orderItems, int createdBy, String createdAt) {
             this.deliveryDate = deliveryDate;
@@ -228,13 +243,11 @@ public class OrderService extends OrderServiceGrpc.OrderServiceImplBase {
         @JsonInclude(JsonInclude.Include.NON_NULL)
         private Integer quantityToPick;
 
-        // For POST requests (only itemId and totalQuantity)
         public OrderItemData(int itemId, int totalQuantity) {
             this.itemId = itemId;
             this.totalQuantity = totalQuantity;
         }
 
-        // For GET requests (all three fields)
         public OrderItemData(int itemId, int totalQuantity, int quantityToPick) {
             this.itemId = itemId;
             this.totalQuantity = totalQuantity;

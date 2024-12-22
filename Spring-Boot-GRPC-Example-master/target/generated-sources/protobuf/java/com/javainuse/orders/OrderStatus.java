@@ -9,24 +9,32 @@ package com.javainuse.orders;
 public enum OrderStatus
     implements com.google.protobuf.ProtocolMessageEnum {
   /**
-   * <code>COMPLETED = 0;</code>
+   * <code>NOT_STARTED = 0;</code>
    */
-  COMPLETED(0),
+  NOT_STARTED(0),
   /**
-   * <code>IN_PROGRESS = 1;</code>
+   * <code>COMPLETED = 1;</code>
    */
-  IN_PROGRESS(1),
+  COMPLETED(1),
+  /**
+   * <code>IN_PROGRESS = 2;</code>
+   */
+  IN_PROGRESS(2),
   UNRECOGNIZED(-1),
   ;
 
   /**
-   * <code>COMPLETED = 0;</code>
+   * <code>NOT_STARTED = 0;</code>
    */
-  public static final int COMPLETED_VALUE = 0;
+  public static final int NOT_STARTED_VALUE = 0;
   /**
-   * <code>IN_PROGRESS = 1;</code>
+   * <code>COMPLETED = 1;</code>
    */
-  public static final int IN_PROGRESS_VALUE = 1;
+  public static final int COMPLETED_VALUE = 1;
+  /**
+   * <code>IN_PROGRESS = 2;</code>
+   */
+  public static final int IN_PROGRESS_VALUE = 2;
 
 
   public final int getNumber() {
@@ -47,8 +55,9 @@ public enum OrderStatus
 
   public static OrderStatus forNumber(int value) {
     switch (value) {
-      case 0: return COMPLETED;
-      case 1: return IN_PROGRESS;
+      case 0: return NOT_STARTED;
+      case 1: return COMPLETED;
+      case 2: return IN_PROGRESS;
       default: return null;
     }
   }

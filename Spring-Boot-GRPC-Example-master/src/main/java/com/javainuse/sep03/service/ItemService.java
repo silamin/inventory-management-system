@@ -6,6 +6,8 @@ import com.javainuse.item.Item;
 import com.javainuse.item.ItemList;
 import com.javainuse.item.ItemServiceGrpc;
 import com.google.protobuf.Empty;
+import io.grpc.Context;
+import io.grpc.Metadata;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import net.devh.boot.grpc.server.service.GrpcService;
@@ -17,6 +19,8 @@ import io.grpc.stub.StreamObserver;
 import reactor.netty.http.client.HttpClient;
 
 import java.util.List;
+
+import static com.javainuse.sep03.service.AuthInterceptor.AUTH_CONTEXT_KEY;
 
 @GrpcService
 public class ItemService extends ItemServiceGrpc.ItemServiceImplBase {
@@ -32,10 +36,22 @@ public class ItemService extends ItemServiceGrpc.ItemServiceImplBase {
             ))
             .build();
 
+    // Retrieve the Authorization token from the gRPC context
+    private String getTokenFromContext() {
+        return AUTH_CONTEXT_KEY.get();
+    }
+
     @Override
     public void createItem(CreateItem request, StreamObserver<Item> responseObserver) {
         logger.info("Received create request: name={}, description={}, quantityInStore={}",
                 request.getName(), request.getDescription(), request.getQuantityInStore());
+
+        String token = getTokenFromContext();
+
+        if (token == null) {
+            responseObserver.onError(new RuntimeException("Authorization token is missing"));
+            return;
+        }
 
         ItemData restCreateItem = new ItemData();
         restCreateItem.setItemName(request.getName());
@@ -44,7 +60,8 @@ public class ItemService extends ItemServiceGrpc.ItemServiceImplBase {
 
         try {
             ItemData createdItem = webClient.post()
-                    .uri("")
+                    .uri("/")
+                    .headers(headers -> headers.setBearerAuth(token))
                     .bodyValue(restCreateItem)
                     .retrieve()
                     .bodyToMono(ItemData.class)
@@ -78,6 +95,13 @@ public class ItemService extends ItemServiceGrpc.ItemServiceImplBase {
         logger.info("Received edit request: itemId={}, itemName={}, description={}, quantityInStore={}",
                 request.getItemId(), request.getItemName(), request.getDescription(), request.getQuantityInStore());
 
+        String token = getTokenFromContext();
+
+        if (token == null) {
+            responseObserver.onError(new RuntimeException("Authorization token is missing"));
+            return;
+        }
+
         int itemId = request.getItemId();
 
         ItemData restItem = new ItemData();
@@ -86,11 +110,10 @@ public class ItemService extends ItemServiceGrpc.ItemServiceImplBase {
         restItem.setDescription(request.getDescription());
         restItem.setQuantityInStore(request.getQuantityInStore());
 
-        logger.info("Calling REST API with ItemData: {}", restItem);
-
         try {
             webClient.put()
                     .uri("/{id}", itemId)
+                    .headers(headers -> headers.setBearerAuth(token))
                     .bodyValue(restItem)
                     .retrieve()
                     .toBodilessEntity()
@@ -102,7 +125,7 @@ public class ItemService extends ItemServiceGrpc.ItemServiceImplBase {
             responseObserver.onNext(Empty.getDefaultInstance());
             responseObserver.onCompleted();
         } catch (Exception e) {
-            logger.error("Error occurred during REST API call: {}", e.getMessage(), e);
+            logger.error("Error occurred during edit REST API call: {}", e.getMessage(), e);
             responseObserver.onError(e);
         }
     }
@@ -112,9 +135,17 @@ public class ItemService extends ItemServiceGrpc.ItemServiceImplBase {
         int itemId = request.getItemId();
         logger.info("Received delete request for itemId: {}", itemId);
 
+        String token = getTokenFromContext();
+
+        if (token == null) {
+            responseObserver.onError(new RuntimeException("Authorization token is missing"));
+            return;
+        }
+
         try {
             webClient.delete()
                     .uri("/{id}", itemId)
+                    .headers(headers -> headers.setBearerAuth(token))
                     .retrieve()
                     .toBodilessEntity()
                     .block();
@@ -132,15 +163,27 @@ public class ItemService extends ItemServiceGrpc.ItemServiceImplBase {
     public void getAllItems(Empty request, StreamObserver<ItemList> responseObserver) {
         logger.info("Received request to get all items");
 
+        String token = getTokenFromContext();
+
+        if (token == null) {
+            logger.error("Authorization token is missing. Aborting the request.");
+            responseObserver.onError(new RuntimeException("Authorization token is missing"));
+            return;
+        }
+
+        logger.info("Token to be used for API call: {}", token);
+
         try {
             List<ItemData> restItems = webClient.get()
-                    .uri("")
+                    .uri("/")
+                    .headers(headers -> headers.setBearerAuth(token))
                     .retrieve()
                     .bodyToFlux(ItemData.class)
                     .collectList()
                     .block();
 
             if (restItems == null) {
+                logger.error("No items returned from the API");
                 responseObserver.onError(new RuntimeException("No items returned"));
                 return;
             }
@@ -156,8 +199,7 @@ public class ItemService extends ItemServiceGrpc.ItemServiceImplBase {
                 itemListBuilder.addItems(grpcItem);
             }
 
-            logger.info("Items retrieved successfully: count={}, items={}",
-                    itemListBuilder.getItemsList().size(), restItems);
+            logger.info("Items retrieved successfully: count={}", itemListBuilder.getItemsList().size());
 
             responseObserver.onNext(itemListBuilder.build());
             responseObserver.onCompleted();
@@ -166,6 +208,8 @@ public class ItemService extends ItemServiceGrpc.ItemServiceImplBase {
             responseObserver.onError(e);
         }
     }
+
+
 
     public static class ItemData {
         private int itemId;
@@ -176,24 +220,31 @@ public class ItemService extends ItemServiceGrpc.ItemServiceImplBase {
         public int getItemId() {
             return itemId;
         }
+
         public void setItemId(int itemId) {
             this.itemId = itemId;
         }
+
         public String getItemName() {
             return itemName;
         }
+
         public void setItemName(String itemName) {
             this.itemName = itemName;
         }
+
         public String getDescription() {
             return description;
         }
+
         public void setDescription(String description) {
             this.description = description;
         }
+
         public int getQuantityInStore() {
             return quantityInStore;
         }
+
         public void setQuantityInStore(int quantityInStore) {
             this.quantityInStore = quantityInStore;
         }

@@ -90,4 +90,17 @@ public interface OrderOrBuilder extends
    * <code>.google.protobuf.Timestamp delivery_date = 7;</code>
    */
   com.google.protobuf.TimestampOrBuilder getDeliveryDateOrBuilder();
+
+  /**
+   * <code>.google.protobuf.Timestamp completed_at = 8;</code>
+   */
+  boolean hasCompletedAt();
+  /**
+   * <code>.google.protobuf.Timestamp completed_at = 8;</code>
+   */
+  com.google.protobuf.Timestamp getCompletedAt();
+  /**
+   * <code>.google.protobuf.Timestamp completed_at = 8;</code>
+   */
+  com.google.protobuf.TimestampOrBuilder getCompletedAtOrBuilder();
 }

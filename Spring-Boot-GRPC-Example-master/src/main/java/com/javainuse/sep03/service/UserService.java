@@ -34,10 +34,25 @@ public class UserService extends UserServiceGrpc.UserServiceImplBase {
             ))
             .build();
 
+    // Retrieve the token from the gRPC context
+    private String getTokenFromContext() {
+        String token = AuthInterceptor.AUTH_CONTEXT_KEY.get();
+        logger.info("Retrieved token: {}", token);
+        return token;
+    }
+
+
     @Override
     public void addUser(CreateUser request, StreamObserver<GetUser> responseObserver) {
         logger.info("STARTING addUser request for user: {}", request.getUserName());
         Instant startTime = Instant.now();
+
+        String token = getTokenFromContext();
+        if (token == null) {
+            logger.error("Authorization token is missing");
+            responseObserver.onError(new RuntimeException("Authorization token is missing"));
+            return;
+        }
 
         UserData restRequest = new UserData(
                 request.getUserName(),
@@ -48,6 +63,7 @@ public class UserService extends UserServiceGrpc.UserServiceImplBase {
 
         webClient.post()
                 .uri("/")
+                .headers(headers -> headers.setBearerAuth(token)) // Set Bearer token
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(restRequest)
                 .retrieve()
@@ -62,10 +78,9 @@ public class UserService extends UserServiceGrpc.UserServiceImplBase {
 
                     responseObserver.onNext(userDTO);
                     responseObserver.onCompleted();
-                    logger.info("FINISHED addUser request for user: {} in {} ms", request.getUserName(), Duration.between(startTime, Instant.now()).toMillis());
                 })
                 .doOnError(error -> {
-                    logger.error("POST /Users FAILED. Request Body: {}. Error: {}", restRequest, error.getMessage(), error);
+                    logger.error("POST /Users FAILED. Error: {}", error.getMessage(), error);
                     responseObserver.onError(new RuntimeException("Failed to create user: " + error.getMessage()));
                 })
                 .subscribe();
@@ -76,6 +91,13 @@ public class UserService extends UserServiceGrpc.UserServiceImplBase {
         logger.info("STARTING editUser request for userId: {}", request.getUserId());
         Instant startTime = Instant.now();
 
+        String token = getTokenFromContext();
+        if (token == null) {
+            logger.error("Authorization token is missing");
+            responseObserver.onError(new RuntimeException("Authorization token is missing"));
+            return;
+        }
+
         UserData restRequest = new UserData(
                 request.getUsername(),
                 request.getPassword(),
@@ -85,6 +107,7 @@ public class UserService extends UserServiceGrpc.UserServiceImplBase {
 
         webClient.put()
                 .uri("/{id}", request.getUserId())
+                .headers(headers -> headers.setBearerAuth(token)) // Set Bearer token
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(restRequest)
                 .retrieve()
@@ -93,10 +116,9 @@ public class UserService extends UserServiceGrpc.UserServiceImplBase {
                     logger.info("PUT /Users/{} SUCCESS. Response: {}", request.getUserId(), response);
                     responseObserver.onNext(Empty.getDefaultInstance());
                     responseObserver.onCompleted();
-                    logger.info("FINISHED editUser request for userId: {} in {} ms", request.getUserId(), Duration.between(startTime, Instant.now()).toMillis());
                 })
                 .doOnError(error -> {
-                    logger.error("PUT /Users/{} FAILED. Request Body: {}. Error: {}", request.getUserId(), restRequest, error.getMessage(), error);
+                    logger.error("PUT /Users/{} FAILED. Error: {}", request.getUserId(), error.getMessage(), error);
                     responseObserver.onError(new RuntimeException("Failed to update user: " + error.getMessage()));
                 })
                 .subscribe();
@@ -107,15 +129,22 @@ public class UserService extends UserServiceGrpc.UserServiceImplBase {
         logger.info("STARTING deleteUser request for userId: {}", request.getUserId());
         Instant startTime = Instant.now();
 
+        String token = getTokenFromContext();
+        if (token == null) {
+            logger.error("Authorization token is missing");
+            responseObserver.onError(new RuntimeException("Authorization token is missing"));
+            return;
+        }
+
         webClient.delete()
                 .uri("/{id}", request.getUserId())
+                .headers(headers -> headers.setBearerAuth(token)) // Set Bearer token
                 .retrieve()
                 .toBodilessEntity()
                 .doOnSuccess(response -> {
                     logger.info("DELETE /Users/{} SUCCESS. Response: {}", request.getUserId(), response);
                     responseObserver.onNext(Empty.getDefaultInstance());
                     responseObserver.onCompleted();
-                    logger.info("FINISHED deleteUser request for userId: {} in {} ms", request.getUserId(), Duration.between(startTime, Instant.now()).toMillis());
                 })
                 .doOnError(error -> {
                     logger.error("DELETE /Users/{} FAILED. Error: {}", request.getUserId(), error.getMessage(), error);
@@ -125,18 +154,30 @@ public class UserService extends UserServiceGrpc.UserServiceImplBase {
     }
 
     @Override
-    public void getAllUsers(Empty request, StreamObserver<UserList> responseObserver) {
-        logger.info("STARTING getAllUsers request...");
+    public void getUsers(Role request, StreamObserver<UserList> responseObserver) {
+        logger.info("STARTING getUsers request for role: {}", request.getUserRole());
         Instant startTime = Instant.now();
 
+        String token = getTokenFromContext();
+        if (token == null) {
+            logger.error("Authorization token is missing");
+            responseObserver.onError(new RuntimeException("Authorization token is missing"));
+            return;
+        }
+
+        // Map the gRPC UserRole enum to the string expected by the REST API
+        String userRole = request.getUserRole().toString();
+
         webClient.get()
-                .uri("/")
+                .uri("/role/{userRole}", userRole)
+                .headers(headers -> headers.setBearerAuth(token)) // Set Bearer token
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
                 .bodyToFlux(UserData.class)
                 .collectList()
                 .doOnSuccess(userResponseList -> {
-                    logger.info("GET /Users SUCCESS. Total users: {}, Users: {}", userResponseList.size(), userResponseList);
+                    logger.info("GET /Users/role/{} SUCCESS. Total users: {}, Users: {}", userRole, userResponseList.size(), userResponseList);
+
                     UserList.Builder userListBuilder = UserList.newBuilder();
                     userResponseList.stream().map(userResponse ->
                             GetUser.newBuilder()
@@ -148,16 +189,15 @@ public class UserService extends UserServiceGrpc.UserServiceImplBase {
 
                     responseObserver.onNext(userListBuilder.build());
                     responseObserver.onCompleted();
-                    logger.info("FINISHED getAllUsers request in {} ms", Duration.between(startTime, Instant.now()).toMillis());
                 })
                 .doOnError(error -> {
-                    logger.error("GET /Users FAILED. Error: {}", error.getMessage(), error);
-                    responseObserver.onError(new RuntimeException("Failed to fetch users: " + error.getMessage()));
+                    logger.error("GET /Users/role/{} FAILED. Error: {}", userRole, error.getMessage(), error);
+                    responseObserver.onError(new RuntimeException("Failed to fetch users by role: " + error.getMessage()));
                 })
                 .subscribe();
     }
 
-// Custom DTO for Unified User
+    // Custom DTO for Unified User
     public static class UserData {
         private int userId;
         private String userName;
