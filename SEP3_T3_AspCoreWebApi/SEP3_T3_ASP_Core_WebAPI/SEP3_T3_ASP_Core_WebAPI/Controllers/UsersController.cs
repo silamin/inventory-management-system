@@ -111,37 +111,6 @@ public class UsersController: ControllerBase
         }
     }
 
-    // ********** GET Endpoints **********
-    /**
-     *     // GET: /Users
-     * 
-     * [HttpGet]
-    public async Task<ActionResult<IEnumerable<GetUserDto>>> GetAllUsers()
-    {
-        try
-        {
-            // Fetch users and project them into GetUserDto objects to exclude the Password property
-            List<GetUserDto> userDtos = await userRepo.GetAllUsers()
-                .Select(user => new GetUserDto
-                {
-                    UserId = user.UserId,
-                    UserName = user.UserName,
-                    UserRole = user.UserRole,
-                })
-                .ToListAsync(); // Ensure asynchronous operation
-
-            return Ok(userDtos);
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-            return StatusCode(500, $"An error occurred: {e.Message}");
-        }
-    }
-
-     * 
-     */
-
 
     [HttpGet("role/{userRole}")]
     public async Task<ActionResult<IEnumerable<GetUserDto>>> GetUsersByRole(UserRole userRole)
@@ -159,23 +128,6 @@ public class UsersController: ControllerBase
                 .ToListAsync();
 
             return Ok(userDtos);
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-            return StatusCode(500, $"An error occurred: {e.Message}");
-        }
-    }
-
-
-    [HttpGet("Type/{type}")]
-    public async Task<ActionResult<IEnumerable<User>>> GetAllUsersByType([FromRoute] UserRole type)
-    {
-        try
-        {
-            List<User> dtos = await userRepo.GetAllUsersByRole(type)
-                .ToListAsync();
-            return Ok(dtos);
         }
         catch (Exception e)
         {

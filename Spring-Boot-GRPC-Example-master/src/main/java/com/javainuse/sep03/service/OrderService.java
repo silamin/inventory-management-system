@@ -101,8 +101,6 @@ public class OrderService extends OrderServiceGrpc.OrderServiceImplBase {
 
     @Override
     public void getOrders(Status request, StreamObserver<OrderList> responseObserver) {
-        String status = request.getOrderStatus().name();
-        logger.info("Fetching orders with status: {}", status);
 
         String token = getTokenFromContext();
         if (token == null) {
@@ -114,7 +112,7 @@ public class OrderService extends OrderServiceGrpc.OrderServiceImplBase {
         webClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/status/{status}")
-                        .build(status))
+                        .build(request.getOrderStatus().getNumber()))
                 .headers(headers -> headers.setBearerAuth(token)) // Set Bearer token
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
@@ -140,7 +138,9 @@ public class OrderService extends OrderServiceGrpc.OrderServiceImplBase {
 
     @Override
     public void updateOrderStatus(UpdateOrderStatusRequest request, StreamObserver<Empty> responseObserver) {
+
         logger.info("Received request to update order status for orderId: {}", request.getOrderId());
+        logger.info("Body: {}", request.getNewStatus().getNumber());
 
         String token = getTokenFromContext();
         if (token == null) {
@@ -153,7 +153,7 @@ public class OrderService extends OrderServiceGrpc.OrderServiceImplBase {
                 .uri(uriBuilder -> uriBuilder.path("/{orderId}/status").build(request.getOrderId()))
                 .headers(headers -> headers.setBearerAuth(token)) // Set Bearer token
                 .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(Map.of("newStatus", request.getNewStatus().name())) // Use enum's name() for string conversion
+                .bodyValue(request.getNewStatus().getNumber()) // Send the raw OrderStatus as plain text
                 .retrieve()
                 .toBodilessEntity()
                 .subscribe(
@@ -296,8 +296,6 @@ public class OrderService extends OrderServiceGrpc.OrderServiceImplBase {
             this.itemId = itemId;
             this.totalQuantity = totalQuantity;
         }
-        
+
     }
-
-
 }

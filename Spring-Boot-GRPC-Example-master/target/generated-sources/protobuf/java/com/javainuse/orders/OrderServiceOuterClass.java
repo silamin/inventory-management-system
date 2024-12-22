@@ -87,8 +87,8 @@ public final class OrderServiceOuterClass {
       "_item_id\030\001 \001(\005\022\020\n\010itemName\030\002 \001(\t\022\030\n\020quan" +
       "tity_to_pick\030\003 \001(\005\022\026\n\016total_quantity\030\004 \001" +
       "(\005\"*\n\tOrderList\022\035\n\006orders\030\001 \003(\0132\r.orders" +
-      ".Order*>\n\013OrderStatus\022\017\n\013NOT_STARTED\020\000\022\r" +
-      "\n\tCOMPLETED\020\001\022\017\n\013IN_PROGRESS\020\0022\316\001\n\014Order" +
+      ".Order*>\n\013OrderStatus\022\017\n\013NOT_STARTED\020\000\022\017" +
+      "\n\013IN_PROGRESS\020\001\022\r\n\tCOMPLETED\020\0022\316\001\n\014Order" +
       "Service\022?\n\013createOrder\022\023.orders.CreateOr" +
       "der\032\033.orders.CreateOrderResponse\022.\n\tgetO" +
       "rders\022\016.orders.Status\032\021.orders.OrderList" +

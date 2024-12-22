@@ -69,18 +69,10 @@ namespace SEP3_T3_ASP_Core_WebAPI.Controllers
         }
 
         [HttpGet("status/{status}")]
-        public async Task<ActionResult<List<GetOrderDTO>>> GetOrdersByStatus([FromRoute] string status)
+        public async Task<ActionResult<List<GetOrderDTO>>> GetOrdersByStatus([FromRoute] OrderStatus orderStatus)
         {
             try
             {
-                Console.WriteLine($"Received request to fetch orders with status: {status}");
-
-                // Parse the provided status
-                if (!Enum.TryParse<OrderStatus>(status, true, out var orderStatus))
-                {
-                    Console.WriteLine($"Invalid order status provided: {status}");
-                    return BadRequest($"Invalid order status: {status}");
-                }
                 Console.WriteLine($"Parsed order status: {orderStatus}");
 
                 // Debugging: Log all claims in the token

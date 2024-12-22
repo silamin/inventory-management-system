@@ -10,7 +10,6 @@ public interface IUserRepository
     Task<User> UpdateUserAsync(int userId, User user);
     Task<User> DeleteUserAsync(int id);
     //IQueryable<User> GetAllUsers();
-    IQueryable<User> GetAllUsersByRole(UserRole type);
     IQueryable<User> GetUsersByRole(UserRole userRole);
 
 }

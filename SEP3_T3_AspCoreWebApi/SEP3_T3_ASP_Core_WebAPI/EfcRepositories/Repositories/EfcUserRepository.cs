@@ -133,12 +133,5 @@ public class EfcUserRepository: IUserRepository
     }
      * 
      */
-
-
-
-    public IQueryable<User> GetAllUsersByRole(UserRole type)
-    {
-        return _ctx.Users.Where(u => u.UserRole == type);
-    }
     
 }
