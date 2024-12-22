@@ -1,4 +1,5 @@
 ﻿using Entities;
+using Microsoft.EntityFrameworkCore;
 using SEP3_T3_ASP_Core_WebAPI;
 using SEP3_T3_ASP_Core_WebAPI.RepositoryContracts;
 
@@ -14,12 +15,15 @@ public class EfcOrderItemRepository: IOrderItemRepository
 
     public async Task<OrderItem> UpdateOrderItemAsync(OrderItem orderItem)
     {
-        if (!_ctx.OrderItems.Any(o => o.OrderItemId == orderItem.OrderItemId))
-        {
-            throw new InvalidOperationException("OrderItem does not exist");
-        }
         _ctx.OrderItems.Update(orderItem);
         await _ctx.SaveChangesAsync();
         return orderItem;
+    }
+    public async Task<OrderItem?> GetOrderItemByIdAsync(int id)
+    {
+        return await _ctx.OrderItems
+            .Include(oi => oi.Item) // Include related item data
+            .Include(oi => oi.Order) // Include related order data
+            .FirstOrDefaultAsync(oi => oi.OrderItemId == id);
     }
 }

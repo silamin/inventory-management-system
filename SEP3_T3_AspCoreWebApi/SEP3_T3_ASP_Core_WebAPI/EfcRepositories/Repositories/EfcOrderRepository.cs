@@ -68,18 +68,21 @@ public class EfcOrderRepository : IOrderRepository
     }
 
 
-    /*
-  *public async Task<List<Order>> GetAllOrders()
+    public async Task<Order?> GetOrderByIdAsync(int orderId)
     {
         return await ctx.Orders
             .Include(order => order.OrderItems)
-            .ThenInclude(oi => oi.Item )
+            .ThenInclude(oi => oi.Item)
             .Include(order => order.AssignedUser)
             .Include(order => order.CreatedBy)
-            .ToListAsync();
+            .FirstOrDefaultAsync(order => order.OrderId == orderId);
     }
-  * 
-  */
+
+    public async Task UpdateOrderAsync(Order order)
+    {
+        ctx.Orders.Update(order);
+        await ctx.SaveChangesAsync();
+    }
 
     public async Task<List<Order>> GetOrdersByStatus(OrderStatus status)
     {

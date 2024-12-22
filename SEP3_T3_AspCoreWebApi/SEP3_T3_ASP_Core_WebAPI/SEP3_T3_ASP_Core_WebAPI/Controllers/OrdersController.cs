@@ -151,6 +151,63 @@ namespace SEP3_T3_ASP_Core_WebAPI.Controllers
             }
         }
 
+        [HttpPut("{orderId}/status")]
+        [Authorize(Roles = Roles.WAREHOUSE_WORKER)] // Ensure only warehouse workers can access
+        public async Task<ActionResult> UpdateOrderStatus(int orderId, [FromBody] UpdateOrderStatusDTO updateStatusDTO)
+        {
+            try
+            {
+                // Get the user's ID from the token
+                var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier || c.Type == "sub")?.Value;
+                if (userId == null)
+                {
+                    Console.WriteLine("Invalid token: missing user ID.");
+                    return Unauthorized("Invalid token: missing user ID.");
+                }
+
+                // Fetch the order from the repository
+                var order = await orderRepository.GetOrderByIdAsync(orderId);
+                if (order == null)
+                {
+                    return NotFound($"Order with ID {orderId} not found.");
+                }
+
+                // Ensure the order is assigned to the current user if it's in progress or completed
+                if (order.AssignedUser?.UserId.ToString() != userId)
+                {
+                    return Forbid("You are not authorized to update the status of this order.");
+                }
+
+                // Update the order status
+                if (!Enum.TryParse<OrderStatus>(updateStatusDTO.NewStatus, true, out var newStatus))
+                {
+                    return BadRequest($"Invalid order status: {updateStatusDTO.NewStatus}");
+                }
+
+                // Validate allowed status transitions
+                if (order.OrderStatus == OrderStatus.COMPLETED)
+                {
+                    return BadRequest("Completed orders cannot be updated.");
+                }
+
+                order.OrderStatus = newStatus;
+                if (newStatus == OrderStatus.COMPLETED)
+                {
+                    order.CompletedAt = DateTimeOffset.UtcNow;
+                }
+
+                await orderRepository.UpdateOrderAsync(order);
+
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                // Log the error and return a server error response
+                Console.WriteLine($"Error in UpdateOrderStatus: {ex.Message}");
+                return StatusCode(500, "An error occurred while updating the order status");
+            }
+        }
+
 
 
     }

@@ -1,4 +1,5 @@
 ﻿using Entities;
+using Entities.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -22,16 +23,29 @@ public class OrderItemsController: ControllerBase
     // ********** UPDATE Endpoints **********
     // PUT: /OrderItems/{id}
     [HttpPut("{id}")]
-    public async Task<ActionResult> UpdateOrderItem([FromRoute] int id, [FromBody] OrderItem orderItem)
+    public async Task<ActionResult> UpdateOrderItem([FromRoute] int id, [FromBody] UpdateOrderItemDTO updateDto)
     {
         try
-        {            
-            await orderItemRepository.UpdateOrderItemAsync(orderItem);
-            return NoContent();
-        }
-        catch (InvalidOperationException)
         {
-            return NotFound($"OrderItem with ID {id} not found.");
+            // Fetch the order item
+            var orderItem = await orderItemRepository.GetOrderItemByIdAsync(id);
+            if (orderItem == null)
+            {
+                return NotFound($"OrderItem with ID {id} not found.");
+            }
+
+            // Update the pick quantity
+            if (updateDto.QuantityToPick > orderItem.TotalQuantity || updateDto.QuantityToPick < 0)
+            {
+                return BadRequest("QuantityToPick cannot be greater than TotalQuantity or less than 0.");
+            }
+
+            orderItem.QuantityToPick = updateDto.QuantityToPick;
+
+            // Save the updated order item
+            await orderItemRepository.UpdateOrderItemAsync(orderItem);
+
+            return NoContent();
         }
         catch (Exception e)
         {
@@ -41,5 +55,5 @@ public class OrderItemsController: ControllerBase
     }
 
 
-    
+
 }
