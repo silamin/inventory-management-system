@@ -157,12 +157,23 @@ namespace SEP3_T3_ASP_Core_WebAPI.Controllers
         {
             try
             {
-                // Get the user's ID from the token
+                // Get the user's ID and username from the token
                 var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier || c.Type == "sub")?.Value;
-                if (userId == null)
+                var userName = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name || c.Type == "unique_name")?.Value;
+                var userRoleString = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role ||
+                                                       c.Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/role")?.Value;
+
+                if (userId == null || userName == null || userRoleString == null)
                 {
-                    Console.WriteLine("Invalid token: missing user ID.");
-                    return Unauthorized("Invalid token: missing user ID.");
+                    Console.WriteLine("Invalid token: missing user ID, username, or role.");
+                    return Unauthorized("Invalid token: missing user ID, username, or role.");
+                }
+
+                // Parse the user role string to the UserRole enum
+                if (!Enum.TryParse(userRoleString, true, out UserRole userRole))
+                {
+                    Console.WriteLine("Invalid user role in token.");
+                    return Unauthorized("Invalid user role in token.");
                 }
 
                 // Fetch the order from the repository
@@ -173,11 +184,10 @@ namespace SEP3_T3_ASP_Core_WebAPI.Controllers
                 }
 
                 // Ensure the order is assigned to the current user if it's in progress or completed
-                if (order.AssignedUser?.UserId.ToString() != userId)
+                if (order.AssignedUser?.UserId.ToString() != userId && order.OrderStatus != OrderStatus.NOT_STARTED)
                 {
                     return Forbid("You are not authorized to update the status of this order.");
                 }
-
 
                 // Validate allowed status transitions
                 if (order.OrderStatus == OrderStatus.COMPLETED)
@@ -185,6 +195,19 @@ namespace SEP3_T3_ASP_Core_WebAPI.Controllers
                     return BadRequest("Completed orders cannot be updated.");
                 }
 
+                // If the new status is IN_PROGRESS, assign the current user
+                if (NewStatus == OrderStatus.IN_PROGRESS)
+                {
+                    order.AssignedUser = new User
+                    {
+                        UserId = int.Parse(userId),
+                        UserName = userName,
+                        Password = "", // Assuming password is not required here
+                        UserRole = userRole
+                    };
+                }
+
+                // Update the order status
                 order.OrderStatus = NewStatus;
                 if (NewStatus == OrderStatus.COMPLETED)
                 {
@@ -202,6 +225,8 @@ namespace SEP3_T3_ASP_Core_WebAPI.Controllers
                 return StatusCode(500, "An error occurred while updating the order status");
             }
         }
+
+
 
 
 
