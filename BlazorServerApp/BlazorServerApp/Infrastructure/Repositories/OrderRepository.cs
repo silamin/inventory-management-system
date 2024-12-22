@@ -12,30 +12,29 @@ namespace BlazorServerApp.Infrastructure.Repositories
     public class OrderRepository : IOrderRepository
     {
         private readonly OrderService.OrderServiceClient _client;
+        private readonly CustomAuthenticationStateProvider _authStateProvider;
 
-        public OrderRepository(OrderService.OrderServiceClient client)
+        public OrderRepository(OrderService.OrderServiceClient client, CustomAuthenticationStateProvider authStateProvider)
         {
             _client = client ?? throw new ArgumentNullException(nameof(client));
+            _authStateProvider = authStateProvider;
         }
 
         public async Task<bool> AddOrderAsync(CreateOrder order)
         {
             try
             {
-                // Call the gRPC method `createOrder` and await the response
-                var response = await _client.createOrderAsync(order);
+                var callOptions = await GetAuthenticatedCallOptionsAsync();
+                var response = await _client.createOrderAsync(order, callOptions);
 
-                // Return the success flag from the response
                 return response.Success;
             }
             catch (RpcException ex)
             {
-                // Log the exception or handle it accordingly
                 throw new ApplicationException($"gRPC error while adding order: {ex.Status.Detail}", ex);
             }
             catch (Exception ex)
             {
-                // Handle any other exceptions
                 throw new ApplicationException("Unexpected error while adding order.", ex);
             }
         }
@@ -44,20 +43,30 @@ namespace BlazorServerApp.Infrastructure.Repositories
         {
             try
             {
-                // Wrap the OrderStatus enum value in a Status message
+                var callOptions = await GetAuthenticatedCallOptionsAsync();
                 var request = new Status { OrderStatus = status };
 
-                // Call the gRPC service and await the response
-                var response = await _client.getOrdersAsync(request);
+                var response = await _client.getOrdersAsync(request, callOptions);
 
-                // Extract and return the list of orders from the response
                 return response.Orders;
             }
             catch (RpcException ex)
             {
-                // Log and rethrow the exception with an appropriate message
                 throw new ApplicationException("Error retrieving all orders", ex);
             }
+        }
+
+        private async Task<CallOptions> GetAuthenticatedCallOptionsAsync()
+        {
+            var token = await _authStateProvider.GetTokenAsync();
+
+            var metadata = new Metadata();
+            if (!string.IsNullOrEmpty(token))
+            {
+                metadata.Add("Authorization", $"Bearer {token}");
+            }
+
+            return new CallOptions(metadata);
         }
 
     }

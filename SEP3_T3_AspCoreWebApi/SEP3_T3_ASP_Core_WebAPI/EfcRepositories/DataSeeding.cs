@@ -89,16 +89,22 @@ namespace SEP3_T3_ASP_Core_WebAPI.Data
                     context.SaveChanges();
 
                     // ----- Step 4: Insert Additional Orders and OrderItems -----
+                    // ----- Step 4: Insert Additional Orders and OrderItems -----
                     var random = new Random();
                     for (int i = 4; i <= 20; i++)
                     {
+                        var orderStatus = i % 4 == 0 ? OrderStatus.NOT_STARTED
+                                        : i % 3 == 0 ? OrderStatus.COMPLETED
+                                        : OrderStatus.IN_PROGRESS;
+
                         var order = new Order
                         {
-                            OrderStatus = i % 3 == 0 ? OrderStatus.COMPLETED : OrderStatus.IN_PROGRESS,
+                            OrderStatus = orderStatus,
                             DeliveryDate = DateTime.UtcNow.AddDays(-i),
                             CreatedById = i % 2 == 0 ? user1.UserId : user2.UserId,
                             UserId = i % 2 == 0 ? user1.UserId : user2.UserId,
                             CreatedAt = DateTimeOffset.UtcNow,
+                            CompletedAt = orderStatus == OrderStatus.COMPLETED ? DateTimeOffset.UtcNow : null,
                             OrderItems = new List<OrderItem>()
                         };
 
@@ -120,6 +126,10 @@ namespace SEP3_T3_ASP_Core_WebAPI.Data
                                 if (order.OrderStatus == OrderStatus.IN_PROGRESS)
                                 {
                                     orderItem.QuantityToPick = random.Next(1, totalQuantity);
+                                }
+                                else if (order.OrderStatus == OrderStatus.NOT_STARTED)
+                                {
+                                    orderItem.QuantityToPick = randomItem.QuantityInStore;
                                 }
 
                                 order.OrderItems.Add(orderItem);

@@ -16,21 +16,6 @@ namespace BlazorServerApp.Infrastructure.Repositories
             _client = client;
         }
 
-        private async Task<CallOptions> GetAuthenticatedCallOptionsAsync()
-        {
-            var token = await _authStateProvider.GetTokenAsync();
-            Console.WriteLine($"Token: {token}");
-            Console.WriteLine($"Authorization Header: Bearer {token}");
-
-            var metadata = new Metadata();
-            if (!string.IsNullOrEmpty(token))
-            {
-                metadata.Add("Authorization", $"Bearer {token}");
-            }
-
-            return new CallOptions(metadata);
-        }
-
         public async Task<Item> CreateItemAsync(CreateItem itemDTO)
         {
             try
@@ -89,6 +74,19 @@ namespace BlazorServerApp.Infrastructure.Repositories
             {
                 throw new ApplicationException("Error retrieving all items", ex);
             }
+        }
+
+        private async Task<CallOptions> GetAuthenticatedCallOptionsAsync()
+        {
+            var token = await _authStateProvider.GetTokenAsync();
+
+            var metadata = new Metadata();
+            if (!string.IsNullOrEmpty(token))
+            {
+                metadata.Add("Authorization", $"Bearer {token}");
+            }
+
+            return new CallOptions(metadata);
         }
     }
 }

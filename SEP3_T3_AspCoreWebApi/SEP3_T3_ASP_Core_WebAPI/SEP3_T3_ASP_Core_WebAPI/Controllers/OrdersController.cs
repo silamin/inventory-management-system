@@ -3,6 +3,7 @@ using Entities.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SEP3_T3_ASP_Core_WebAPI.RepositoryContracts;
+using static Entities.Roles;
 
 namespace SEP3_T3_ASP_Core_WebAPI.Controllers
 {
@@ -19,6 +20,7 @@ namespace SEP3_T3_ASP_Core_WebAPI.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = INVENTORY_MANAGER)]
         public async Task<ActionResult<bool>> AddOrder([FromBody] CreateOrderDTO createOrderDTO)
         {
             try
