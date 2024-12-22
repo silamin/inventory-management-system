@@ -16,6 +16,7 @@ private static final long serialVersionUID = 0L;
     super(builder);
   }
   private GetOrderItem() {
+    orderItemId_ = 0;
     itemName_ = "";
     quantityToPick_ = 0;
     totalQuantity_ = 0;
@@ -45,18 +46,23 @@ private static final long serialVersionUID = 0L;
           case 0:
             done = true;
             break;
-          case 10: {
+          case 8: {
+
+            orderItemId_ = input.readInt32();
+            break;
+          }
+          case 18: {
             java.lang.String s = input.readStringRequireUtf8();
 
             itemName_ = s;
             break;
           }
-          case 16: {
+          case 24: {
 
             quantityToPick_ = input.readInt32();
             break;
           }
-          case 24: {
+          case 32: {
 
             totalQuantity_ = input.readInt32();
             break;
@@ -93,14 +99,27 @@ private static final long serialVersionUID = 0L;
             com.javainuse.orders.GetOrderItem.class, com.javainuse.orders.GetOrderItem.Builder.class);
   }
 
-  public static final int ITEMNAME_FIELD_NUMBER = 1;
+  public static final int ORDER_ITEM_ID_FIELD_NUMBER = 1;
+  private int orderItemId_;
+  /**
+   * <pre>
+   * ID of the order item
+   * </pre>
+   *
+   * <code>int32 order_item_id = 1;</code>
+   */
+  public int getOrderItemId() {
+    return orderItemId_;
+  }
+
+  public static final int ITEMNAME_FIELD_NUMBER = 2;
   private volatile java.lang.Object itemName_;
   /**
    * <pre>
    * For fetching, we return the full item
    * </pre>
    *
-   * <code>string itemName = 1;</code>
+   * <code>string itemName = 2;</code>
    */
   public java.lang.String getItemName() {
     java.lang.Object ref = itemName_;
@@ -119,7 +138,7 @@ private static final long serialVersionUID = 0L;
    * For fetching, we return the full item
    * </pre>
    *
-   * <code>string itemName = 1;</code>
+   * <code>string itemName = 2;</code>
    */
   public com.google.protobuf.ByteString
       getItemNameBytes() {
@@ -135,19 +154,19 @@ private static final long serialVersionUID = 0L;
     }
   }
 
-  public static final int QUANTITY_TO_PICK_FIELD_NUMBER = 2;
+  public static final int QUANTITY_TO_PICK_FIELD_NUMBER = 3;
   private int quantityToPick_;
   /**
-   * <code>int32 quantity_to_pick = 2;</code>
+   * <code>int32 quantity_to_pick = 3;</code>
    */
   public int getQuantityToPick() {
     return quantityToPick_;
   }
 
-  public static final int TOTAL_QUANTITY_FIELD_NUMBER = 3;
+  public static final int TOTAL_QUANTITY_FIELD_NUMBER = 4;
   private int totalQuantity_;
   /**
-   * <code>int32 total_quantity = 3;</code>
+   * <code>int32 total_quantity = 4;</code>
    */
   public int getTotalQuantity() {
     return totalQuantity_;
@@ -167,14 +186,17 @@ private static final long serialVersionUID = 0L;
   @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
+    if (orderItemId_ != 0) {
+      output.writeInt32(1, orderItemId_);
+    }
     if (!getItemNameBytes().isEmpty()) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 1, itemName_);
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 2, itemName_);
     }
     if (quantityToPick_ != 0) {
-      output.writeInt32(2, quantityToPick_);
+      output.writeInt32(3, quantityToPick_);
     }
     if (totalQuantity_ != 0) {
-      output.writeInt32(3, totalQuantity_);
+      output.writeInt32(4, totalQuantity_);
     }
     unknownFields.writeTo(output);
   }
@@ -185,16 +207,20 @@ private static final long serialVersionUID = 0L;
     if (size != -1) return size;
 
     size = 0;
+    if (orderItemId_ != 0) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeInt32Size(1, orderItemId_);
+    }
     if (!getItemNameBytes().isEmpty()) {
-      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, itemName_);
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, itemName_);
     }
     if (quantityToPick_ != 0) {
       size += com.google.protobuf.CodedOutputStream
-        .computeInt32Size(2, quantityToPick_);
+        .computeInt32Size(3, quantityToPick_);
     }
     if (totalQuantity_ != 0) {
       size += com.google.protobuf.CodedOutputStream
-        .computeInt32Size(3, totalQuantity_);
+        .computeInt32Size(4, totalQuantity_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -212,6 +238,8 @@ private static final long serialVersionUID = 0L;
     com.javainuse.orders.GetOrderItem other = (com.javainuse.orders.GetOrderItem) obj;
 
     boolean result = true;
+    result = result && (getOrderItemId()
+        == other.getOrderItemId());
     result = result && getItemName()
         .equals(other.getItemName());
     result = result && (getQuantityToPick()
@@ -229,6 +257,8 @@ private static final long serialVersionUID = 0L;
     }
     int hash = 41;
     hash = (19 * hash) + getDescriptor().hashCode();
+    hash = (37 * hash) + ORDER_ITEM_ID_FIELD_NUMBER;
+    hash = (53 * hash) + getOrderItemId();
     hash = (37 * hash) + ITEMNAME_FIELD_NUMBER;
     hash = (53 * hash) + getItemName().hashCode();
     hash = (37 * hash) + QUANTITY_TO_PICK_FIELD_NUMBER;
@@ -368,6 +398,8 @@ private static final long serialVersionUID = 0L;
     @java.lang.Override
     public Builder clear() {
       super.clear();
+      orderItemId_ = 0;
+
       itemName_ = "";
 
       quantityToPick_ = 0;
@@ -400,6 +432,7 @@ private static final long serialVersionUID = 0L;
     @java.lang.Override
     public com.javainuse.orders.GetOrderItem buildPartial() {
       com.javainuse.orders.GetOrderItem result = new com.javainuse.orders.GetOrderItem(this);
+      result.orderItemId_ = orderItemId_;
       result.itemName_ = itemName_;
       result.quantityToPick_ = quantityToPick_;
       result.totalQuantity_ = totalQuantity_;
@@ -451,6 +484,9 @@ private static final long serialVersionUID = 0L;
 
     public Builder mergeFrom(com.javainuse.orders.GetOrderItem other) {
       if (other == com.javainuse.orders.GetOrderItem.getDefaultInstance()) return this;
+      if (other.getOrderItemId() != 0) {
+        setOrderItemId(other.getOrderItemId());
+      }
       if (!other.getItemName().isEmpty()) {
         itemName_ = other.itemName_;
         onChanged();
@@ -490,13 +526,51 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    private int orderItemId_ ;
+    /**
+     * <pre>
+     * ID of the order item
+     * </pre>
+     *
+     * <code>int32 order_item_id = 1;</code>
+     */
+    public int getOrderItemId() {
+      return orderItemId_;
+    }
+    /**
+     * <pre>
+     * ID of the order item
+     * </pre>
+     *
+     * <code>int32 order_item_id = 1;</code>
+     */
+    public Builder setOrderItemId(int value) {
+      
+      orderItemId_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * ID of the order item
+     * </pre>
+     *
+     * <code>int32 order_item_id = 1;</code>
+     */
+    public Builder clearOrderItemId() {
+      
+      orderItemId_ = 0;
+      onChanged();
+      return this;
+    }
+
     private java.lang.Object itemName_ = "";
     /**
      * <pre>
      * For fetching, we return the full item
      * </pre>
      *
-     * <code>string itemName = 1;</code>
+     * <code>string itemName = 2;</code>
      */
     public java.lang.String getItemName() {
       java.lang.Object ref = itemName_;
@@ -515,7 +589,7 @@ private static final long serialVersionUID = 0L;
      * For fetching, we return the full item
      * </pre>
      *
-     * <code>string itemName = 1;</code>
+     * <code>string itemName = 2;</code>
      */
     public com.google.protobuf.ByteString
         getItemNameBytes() {
@@ -535,7 +609,7 @@ private static final long serialVersionUID = 0L;
      * For fetching, we return the full item
      * </pre>
      *
-     * <code>string itemName = 1;</code>
+     * <code>string itemName = 2;</code>
      */
     public Builder setItemName(
         java.lang.String value) {
@@ -552,7 +626,7 @@ private static final long serialVersionUID = 0L;
      * For fetching, we return the full item
      * </pre>
      *
-     * <code>string itemName = 1;</code>
+     * <code>string itemName = 2;</code>
      */
     public Builder clearItemName() {
       
@@ -565,7 +639,7 @@ private static final long serialVersionUID = 0L;
      * For fetching, we return the full item
      * </pre>
      *
-     * <code>string itemName = 1;</code>
+     * <code>string itemName = 2;</code>
      */
     public Builder setItemNameBytes(
         com.google.protobuf.ByteString value) {
@@ -581,13 +655,13 @@ private static final long serialVersionUID = 0L;
 
     private int quantityToPick_ ;
     /**
-     * <code>int32 quantity_to_pick = 2;</code>
+     * <code>int32 quantity_to_pick = 3;</code>
      */
     public int getQuantityToPick() {
       return quantityToPick_;
     }
     /**
-     * <code>int32 quantity_to_pick = 2;</code>
+     * <code>int32 quantity_to_pick = 3;</code>
      */
     public Builder setQuantityToPick(int value) {
       
@@ -596,7 +670,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>int32 quantity_to_pick = 2;</code>
+     * <code>int32 quantity_to_pick = 3;</code>
      */
     public Builder clearQuantityToPick() {
       
@@ -607,13 +681,13 @@ private static final long serialVersionUID = 0L;
 
     private int totalQuantity_ ;
     /**
-     * <code>int32 total_quantity = 3;</code>
+     * <code>int32 total_quantity = 4;</code>
      */
     public int getTotalQuantity() {
       return totalQuantity_;
     }
     /**
-     * <code>int32 total_quantity = 3;</code>
+     * <code>int32 total_quantity = 4;</code>
      */
     public Builder setTotalQuantity(int value) {
       
@@ -622,7 +696,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>int32 total_quantity = 3;</code>
+     * <code>int32 total_quantity = 4;</code>
      */
     public Builder clearTotalQuantity() {
       

@@ -131,6 +131,7 @@ namespace SEP3_T3_ASP_Core_WebAPI.Controllers
                     CreatedAt = order.CreatedAt,
                     OrderItems = order.OrderItems.Select(oi => new GetOrderItemDTO
                     {
+                        OrderItemId = oi.OrderItemId,
                         itemName = oi.Item.ItemName,
                         QuantityToPick = oi.QuantityToPick,
                         TotalQuantity = oi.TotalQuantity,

@@ -1,15 +1,18 @@
 ﻿using BlazorServerApp.Application.UseCases;
 using Orders;
+using OrderItems;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Blazored.Toast.Services;
 
 namespace BlazorServerApp.Managers
 {
     public class PickupManager
     {
         private readonly OrderUseCases _orderUseCases;
+        private readonly OrderItemUseCases _orderItemUseCases;
 
         public bool IsLoading { get; private set; } = false;
         public string ActiveView { get; set; } = "Unassigned";
@@ -19,10 +22,14 @@ namespace BlazorServerApp.Managers
         public List<Order> UnassignedOrders { get; private set; } = new();
         public List<Order> AssignedOrders { get; private set; } = new();
         public List<Order> CompletedOrders { get; private set; } = new();
+        private readonly IToastService _toastService;
 
-        public PickupManager(OrderUseCases orderUseCases)
+
+        public PickupManager(OrderUseCases orderUseCases, OrderItemUseCases orderItemUseCases, IToastService toastService)
         {
             _orderUseCases = orderUseCases;
+            _orderItemUseCases = orderItemUseCases;
+            _toastService = toastService;
         }
 
         public async Task LoadOrdersAsync()
@@ -32,7 +39,6 @@ namespace BlazorServerApp.Managers
 
             try
             {
-                // Fetch orders by status
                 var unassignedResponse = await _orderUseCases.GetOrdersByStatusAsync(OrderStatus.NotStarted);
                 var assignedResponse = await _orderUseCases.GetOrdersByStatusAsync(OrderStatus.InProgress);
                 var completedResponse = await _orderUseCases.GetOrdersByStatusAsync(OrderStatus.Completed);
@@ -52,13 +58,36 @@ namespace BlazorServerApp.Managers
             }
         }
 
-        public void AssignOrder(Order order)
+        public async Task AssignOrderAsync(Order order)
         {
-            UnassignedOrders.Remove(order);
-            AssignedOrders.Add(order);
-            order.OrderStatus = OrderStatus.InProgress;
-            NotifyStateChanged();
+            try
+            {
+                var request = new UpdateOrderStatusRequest
+                {
+                    OrderId = order.OrderId,
+                    NewStatus = OrderStatus.InProgress
+                };
+
+                await _orderUseCases.UpdateOrderStatusAsync(request);
+
+                UnassignedOrders.Remove(order);
+                AssignedOrders.Add(order);
+                order.OrderStatus = OrderStatus.InProgress;
+
+                NotifyStateChanged();
+
+                // Show success toast notification
+                _toastService.ShowSuccess($"Order #{order.OrderId} successfully assigned and marked as 'In Progress'.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error assigning order: {ex.Message}");
+
+                // Show error toast notification
+                _toastService.ShowError($"Failed to assign Order #{order.OrderId}. Please try again.");
+            }
         }
+
 
         public void ToggleOrderDetails(int orderId, bool isUnassigned)
         {
@@ -75,35 +104,92 @@ namespace BlazorServerApp.Managers
             NotifyStateChanged();
         }
 
-        public void CompleteOrder()
+        public async Task CompleteOrderAsync()
         {
             if (SelectedOrder != null && CanCompleteOrder())
             {
-                SelectedOrder.OrderStatus = OrderStatus.Completed; // Match your proto enum
-                SelectedOrder.CompletedAt = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
-                CompletedOrders.Add(SelectedOrder);
-                AssignedOrders.Remove(SelectedOrder);
-                SelectedOrder = null;
+                try
+                {
+                    var request = new UpdateOrderStatusRequest
+                    {
+                        OrderId = SelectedOrder.OrderId,
+                        NewStatus = OrderStatus.Completed
+                    };
 
-                NotifyStateChanged();
+                    await _orderUseCases.UpdateOrderStatusAsync(request);
+
+                    SelectedOrder.OrderStatus = OrderStatus.Completed;
+                    SelectedOrder.CompletedAt = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
+                    CompletedOrders.Add(SelectedOrder);
+                    AssignedOrders.Remove(SelectedOrder);
+                    SelectedOrder = null;
+
+                    _toastService.ShowSuccess("Order completed successfully!");
+
+
+                    NotifyStateChanged();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error completing order: {ex.Message}");
+                    _toastService.ShowError("Failed to complete the order.");
+
+                }
             }
         }
 
-        public void PickupItem(GetOrderItem item)
+        public async Task PickupItemAsync(GetOrderItem item)
         {
             if (item.QuantityToPick > 0)
             {
-                item.QuantityToPick--;
-                NotifyStateChanged();
+                try
+                {
+                    var request = new UpdateOrderItemRequest
+                    {
+                        OrderItemId = item.OrderItemId, // Correct field for the ID
+                        QuantityToPick = item.QuantityToPick - 1
+                    };
+
+                    await _orderItemUseCases.UpdateOrderItemsAsync(request);
+
+                    item.QuantityToPick--;
+                    _toastService.ShowSuccess($"Picked up 1 unit of {item.ItemName}.");
+
+                    NotifyStateChanged();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error picking up item: {ex.Message}");
+                    _toastService.ShowError($"Failed to pick up {item.ItemName}.");
+
+                }
             }
         }
 
-        public void RevertPickupItem(GetOrderItem item)
+        public async Task RevertPickupItemAsync(GetOrderItem item)
         {
             if (item.QuantityToPick < item.TotalQuantity)
             {
-                item.QuantityToPick++;
-                NotifyStateChanged();
+                try
+                {
+                    var request = new UpdateOrderItemRequest
+                    {
+                        OrderItemId = item.OrderItemId,
+                        QuantityToPick = item.QuantityToPick + 1
+                    };
+
+                    await _orderItemUseCases.UpdateOrderItemsAsync(request);
+
+                    item.QuantityToPick++;
+                    _toastService.ShowWarning($"Reverted pickup of 1 unit of {item.ItemName}.");
+
+                    NotifyStateChanged();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error reverting pickup item: {ex.Message}");
+                    _toastService.ShowError($"Failed to revert pickup for {item.ItemName}.");
+                }
             }
         }
 

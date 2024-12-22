@@ -50,9 +50,10 @@ message UpdateOrderStatusRequest {
 }
 
 message GetOrderItem {
-  string itemName = 1; // For fetching, we return the full item
-  int32 quantity_to_pick = 2;
-  int32 total_quantity = 3;
+	int32 order_item_id = 1;
+  string itemName = 2; // For fetching, we return the full item
+  int32 quantity_to_pick = 3;
+  int32 total_quantity = 4;
 }
 
 message OrderList {

@@ -5,6 +5,7 @@ using BlazorServerApp.Infrastructure.Repositories;
 using BlazorServerApp.Managers;
 using Items;
 using Microsoft.AspNetCore.Components.Authorization;
+using OrderItems;
 using Orders;
 using Users;
 
@@ -37,6 +38,10 @@ builder.Services.AddGrpcClient<UserService.UserServiceClient>(options =>
 {
     options.Address = new Uri("http://localhost:8090");
 });
+builder.Services.AddGrpcClient<OrderItemService.OrderItemServiceClient>(options =>
+{
+    options.Address = new Uri("http://localhost:8090");
+});
 
 // Register the CustomAuthenticationStateProvider
 builder.Services.AddScoped<CustomAuthenticationStateProvider>();
@@ -49,9 +54,11 @@ builder.Services.AddScoped<LoginManager>();
 
 builder.Services.AddScoped<IItemRepository, ItemRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<IOrderItemRepository, OrderItemRepository>();
 
 builder.Services.AddScoped<ItemUseCases>();
 builder.Services.AddScoped<OrderUseCases>();
+builder.Services.AddScoped<OrderItemUseCases>();
 
 builder.Services.AddScoped<InventoryManager>();
 builder.Services.AddScoped<OrderHistoryManager>();

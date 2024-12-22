@@ -68,7 +68,7 @@ else
                             <td class="text-center">@Manager.FormatTimestamp(order.DeliveryDate)</td>
                             <td class="text-center">
                                 <button class="btn btn-primary btn-sm me-2" @onclick="() => Manager.ToggleOrderDetails(order.OrderId, true)">View Items</button>
-                                <button class="btn btn-success btn-sm" @onclick="() => Manager.AssignOrder(order)">Assign to Me</button>
+                                <button class="btn btn-success btn-sm" @onclick="() => Manager.AssignOrderAsync(order)">Assign to Me</button>
                             </td>
                         </tr>
                     }
@@ -131,15 +131,15 @@ else
                                                         <td class="text-center">@item.QuantityToPick</td>
                                                         <td class="text-center">@(@item.TotalQuantity - @item.QuantityToPick)</td>
                                                         <td class="text-center">
-                                                            <button class="btn btn-success btn-sm" @onclick="() => Manager.PickupItem(item)" disabled="@(item.QuantityToPick == 0)">Pick up item</button>
-                                                            <button class="btn btn-warning btn-sm" @onclick="() => Manager.RevertPickupItem(item)" disabled="@(item.QuantityToPick == item.TotalQuantity)">Revert</button>
+                                                            <button class="btn btn-success btn-sm" @onclick="() => Manager.PickupItemAsync(item)" disabled="@(item.QuantityToPick == 0)">Pick up item</button>
+                                                            <button class="btn btn-warning btn-sm" @onclick="() => Manager.RevertPickupItemAsync(item)" disabled="@(item.QuantityToPick == item.TotalQuantity)">Revert</button>
                                                         </td>
                                                     </tr>
                                                 }
                                             </tbody>
                                         </table>
                                         <div class="text-center mt-4">
-                                            <button class="btn btn-success" @onclick="Manager.CompleteOrder" disabled="@(!Manager.CanCompleteOrder())">Complete Order</button>
+                                            <button class="btn btn-success" @onclick="Manager.CompleteOrderAsync" disabled="@(!Manager.CanCompleteOrder())">Complete Order</button>
                                         </div>
                                     </div>
                                 </td>

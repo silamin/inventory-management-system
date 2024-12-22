@@ -83,18 +83,18 @@ public final class OrderServiceOuterClass {
       "\n\014completed_at\030\010 \001(\0132\032.google.protobuf.T" +
       "imestamp\"U\n\030UpdateOrderStatusRequest\022\020\n\010" +
       "order_id\030\001 \001(\005\022\'\n\nnew_status\030\002 \001(\0162\023.ord" +
-      "ers.OrderStatus\"R\n\014GetOrderItem\022\020\n\010itemN" +
-      "ame\030\001 \001(\t\022\030\n\020quantity_to_pick\030\002 \001(\005\022\026\n\016t" +
-      "otal_quantity\030\003 \001(\005\"*\n\tOrderList\022\035\n\006orde" +
-      "rs\030\001 \003(\0132\r.orders.Order*>\n\013OrderStatus\022\017" +
-      "\n\013NOT_STARTED\020\000\022\r\n\tCOMPLETED\020\001\022\017\n\013IN_PRO" +
-      "GRESS\020\0022\316\001\n\014OrderService\022?\n\013createOrder\022" +
-      "\023.orders.CreateOrder\032\033.orders.CreateOrde" +
-      "rResponse\022.\n\tgetOrders\022\016.orders.Status\032\021" +
-      ".orders.OrderList\022M\n\021updateOrderStatus\022 " +
-      ".orders.UpdateOrderStatusRequest\032\026.googl" +
-      "e.protobuf.EmptyB\030\n\024com.javainuse.orders" +
-      "P\001b\006proto3"
+      "ers.OrderStatus\"i\n\014GetOrderItem\022\025\n\rorder" +
+      "_item_id\030\001 \001(\005\022\020\n\010itemName\030\002 \001(\t\022\030\n\020quan" +
+      "tity_to_pick\030\003 \001(\005\022\026\n\016total_quantity\030\004 \001" +
+      "(\005\"*\n\tOrderList\022\035\n\006orders\030\001 \003(\0132\r.orders" +
+      ".Order*>\n\013OrderStatus\022\017\n\013NOT_STARTED\020\000\022\r" +
+      "\n\tCOMPLETED\020\001\022\017\n\013IN_PROGRESS\020\0022\316\001\n\014Order" +
+      "Service\022?\n\013createOrder\022\023.orders.CreateOr" +
+      "der\032\033.orders.CreateOrderResponse\022.\n\tgetO" +
+      "rders\022\016.orders.Status\032\021.orders.OrderList" +
+      "\022M\n\021updateOrderStatus\022 .orders.UpdateOrd" +
+      "erStatusRequest\032\026.google.protobuf.EmptyB" +
+      "\030\n\024com.javainuse.ordersP\001b\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -153,7 +153,7 @@ public final class OrderServiceOuterClass {
     internal_static_orders_GetOrderItem_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_orders_GetOrderItem_descriptor,
-        new java.lang.String[] { "ItemName", "QuantityToPick", "TotalQuantity", });
+        new java.lang.String[] { "OrderItemId", "ItemName", "QuantityToPick", "TotalQuantity", });
     internal_static_orders_OrderList_descriptor =
       getDescriptor().getMessageTypes().get(7);
     internal_static_orders_OrderList_fieldAccessorTable = new

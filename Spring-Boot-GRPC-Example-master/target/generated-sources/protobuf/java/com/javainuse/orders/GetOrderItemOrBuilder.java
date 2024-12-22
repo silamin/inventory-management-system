@@ -9,10 +9,19 @@ public interface GetOrderItemOrBuilder extends
 
   /**
    * <pre>
+   * ID of the order item
+   * </pre>
+   *
+   * <code>int32 order_item_id = 1;</code>
+   */
+  int getOrderItemId();
+
+  /**
+   * <pre>
    * For fetching, we return the full item
    * </pre>
    *
-   * <code>string itemName = 1;</code>
+   * <code>string itemName = 2;</code>
    */
   java.lang.String getItemName();
   /**
@@ -20,18 +29,18 @@ public interface GetOrderItemOrBuilder extends
    * For fetching, we return the full item
    * </pre>
    *
-   * <code>string itemName = 1;</code>
+   * <code>string itemName = 2;</code>
    */
   com.google.protobuf.ByteString
       getItemNameBytes();
 
   /**
-   * <code>int32 quantity_to_pick = 2;</code>
+   * <code>int32 quantity_to_pick = 3;</code>
    */
   int getQuantityToPick();
 
   /**
-   * <code>int32 total_quantity = 3;</code>
+   * <code>int32 total_quantity = 4;</code>
    */
   int getTotalQuantity();
 }

@@ -19,4 +19,8 @@
 	  <Protobuf Include="Protos\**\*.proto" ProtoRoot="Protos" GrpcServices="Client" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Remove="protos\order-item-service.proto" />
+  </ItemGroup>
+
 </Project>

@@ -178,6 +178,7 @@ public class OrderService extends OrderServiceGrpc.OrderServiceImplBase {
                         .stream().map(orderItem -> {
                             Map<String, Object> orderItemMap = (Map<String, Object>) orderItem;
                             return GetOrderItem.newBuilder()
+                                    .setOrderItemId(((Number) orderItemMap.getOrDefault("orderItemId", 0)).intValue()) // Include OrderItemId
                                     .setItemName(Optional.ofNullable((String) orderItemMap.get("itemName")).orElse("Unknown"))
                                     .setQuantityToPick(((Number) orderItemMap.getOrDefault("quantityToPick", 0)).intValue())
                                     .setTotalQuantity(((Number) orderItemMap.getOrDefault("totalQuantity", 0)).intValue())
@@ -264,6 +265,10 @@ public class OrderService extends OrderServiceGrpc.OrderServiceImplBase {
      * Data structure for order items
      */
     public static class OrderItemData {
+
+        @JsonProperty("orderItemId")
+        private int orderItemId;
+
         @JsonProperty("itemId")
         private int itemId;
 
@@ -274,15 +279,25 @@ public class OrderService extends OrderServiceGrpc.OrderServiceImplBase {
         @JsonInclude(JsonInclude.Include.NON_NULL)
         private Integer quantityToPick;
 
-        public OrderItemData(int itemId, int totalQuantity) {
-            this.itemId = itemId;
-            this.totalQuantity = totalQuantity;
-        }
-
-        public OrderItemData(int itemId, int totalQuantity, int quantityToPick) {
+        // Constructor with all fields
+        public OrderItemData(int orderItemId, int itemId, int totalQuantity, Integer quantityToPick) {
+            this.orderItemId = orderItemId;
             this.itemId = itemId;
             this.totalQuantity = totalQuantity;
             this.quantityToPick = quantityToPick;
         }
+
+        // Constructor without quantityToPick (if quantityToPick is optional)
+        public OrderItemData(int orderItemId, int itemId, int totalQuantity) {
+            this(orderItemId, itemId, totalQuantity, null); // Default quantityToPick to null
+        }
+
+        public OrderItemData(int itemId, int totalQuantity) {
+            this.itemId = itemId;
+            this.totalQuantity = totalQuantity;
+        }
+        
     }
+
+
 }

@@ -30,6 +30,7 @@ namespace Entities.DTOs
     }
     public class GetOrderItemDTO
     {
+        public int OrderItemId { get; set; }
         public string itemName { get; set; }
         public int QuantityToPick { get; set; }
         public int TotalQuantity { get; set; }
