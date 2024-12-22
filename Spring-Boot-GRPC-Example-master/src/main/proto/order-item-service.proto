@@ -2,10 +2,10 @@ syntax = "proto3";
 
 import "google/protobuf/empty.proto";
 
-package orders;
+package order_items;
 
 option java_multiple_files = true;
-option java_package = "com.javainuse.orders";
+option java_package = "com.javainuse.order_items";
 
 service OrderItemService {
   rpc updateOrderItem(UpdateOrderItemRequest) returns (google.protobuf.Empty);

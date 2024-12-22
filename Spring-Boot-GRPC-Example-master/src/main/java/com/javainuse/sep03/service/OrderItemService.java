@@ -1,8 +1,8 @@
 package com.javainuse.sep03.service;
 
 import com.google.protobuf.Empty;
-import com.javainuse.orders.UpdateOrderItemRequest;
-import com.javainuse.orders.OrderItemServiceGrpc;
+import com.javainuse.order_items.OrderItemServiceGrpc;
+import com.javainuse.order_items.UpdateOrderItemRequest;
 import io.grpc.stub.StreamObserver;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;

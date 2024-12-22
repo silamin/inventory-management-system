@@ -1,4 +1,6 @@
 ﻿using BlazorServerApp.Application.Interfaces;
+using BlazorServerApp.Infrastructure.Repositories;
+using Items;
 using Orders;
 
 namespace BlazorServerApp.Application.UseCases
@@ -39,6 +41,20 @@ namespace BlazorServerApp.Application.UseCases
             {
                 // Handle exception appropriately (logging, rethrow, etc.)
                 throw new ApplicationException("Error retrieving orders", ex);
+            }
+        }
+        public async Task UpdateOrderStatusAsync(UpdateOrderStatusRequest newStatus)
+        {
+            if (newStatus == null) throw new ArgumentNullException(nameof(newStatus));
+
+            try
+            {
+                await _orderRepository.UpdateOrderStatus(newStatus);
+            }
+            catch (Exception ex)
+            {
+                // Handle exception appropriately (logging, rethrow, etc.)
+                throw new ApplicationException("Error editing item", ex);
             }
         }
     }

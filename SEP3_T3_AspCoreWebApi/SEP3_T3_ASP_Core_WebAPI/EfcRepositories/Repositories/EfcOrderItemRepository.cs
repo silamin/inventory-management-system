@@ -19,6 +19,7 @@ public class EfcOrderItemRepository: IOrderItemRepository
         await _ctx.SaveChangesAsync();
         return orderItem;
     }
+    //DO not allo pick more then total
     public async Task<OrderItem?> GetOrderItemByIdAsync(int id)
     {
         return await _ctx.OrderItems

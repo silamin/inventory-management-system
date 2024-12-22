@@ -1,4 +1,4 @@
-package com.javainuse.orders;
+package com.javainuse.order_items;
 
 import static io.grpc.MethodDescriptor.generateFullMethodName;
 import static io.grpc.stub.ClientCalls.asyncBidiStreamingCall;
@@ -24,31 +24,31 @@ public final class OrderItemServiceGrpc {
 
   private OrderItemServiceGrpc() {}
 
-  public static final String SERVICE_NAME = "orders.OrderItemService";
+  public static final String SERVICE_NAME = "order_items.OrderItemService";
 
   // Static method descriptors that strictly reflect the proto.
-  private static volatile io.grpc.MethodDescriptor<com.javainuse.orders.UpdateOrderItemRequest,
+  private static volatile io.grpc.MethodDescriptor<com.javainuse.order_items.UpdateOrderItemRequest,
       com.google.protobuf.Empty> getUpdateOrderItemMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
       fullMethodName = SERVICE_NAME + '/' + "updateOrderItem",
-      requestType = com.javainuse.orders.UpdateOrderItemRequest.class,
+      requestType = com.javainuse.order_items.UpdateOrderItemRequest.class,
       responseType = com.google.protobuf.Empty.class,
       methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<com.javainuse.orders.UpdateOrderItemRequest,
+  public static io.grpc.MethodDescriptor<com.javainuse.order_items.UpdateOrderItemRequest,
       com.google.protobuf.Empty> getUpdateOrderItemMethod() {
-    io.grpc.MethodDescriptor<com.javainuse.orders.UpdateOrderItemRequest, com.google.protobuf.Empty> getUpdateOrderItemMethod;
+    io.grpc.MethodDescriptor<com.javainuse.order_items.UpdateOrderItemRequest, com.google.protobuf.Empty> getUpdateOrderItemMethod;
     if ((getUpdateOrderItemMethod = OrderItemServiceGrpc.getUpdateOrderItemMethod) == null) {
       synchronized (OrderItemServiceGrpc.class) {
         if ((getUpdateOrderItemMethod = OrderItemServiceGrpc.getUpdateOrderItemMethod) == null) {
           OrderItemServiceGrpc.getUpdateOrderItemMethod = getUpdateOrderItemMethod = 
-              io.grpc.MethodDescriptor.<com.javainuse.orders.UpdateOrderItemRequest, com.google.protobuf.Empty>newBuilder()
+              io.grpc.MethodDescriptor.<com.javainuse.order_items.UpdateOrderItemRequest, com.google.protobuf.Empty>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(
-                  "orders.OrderItemService", "updateOrderItem"))
+                  "order_items.OrderItemService", "updateOrderItem"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  com.javainuse.orders.UpdateOrderItemRequest.getDefaultInstance()))
+                  com.javainuse.order_items.UpdateOrderItemRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   com.google.protobuf.Empty.getDefaultInstance()))
                   .setSchemaDescriptor(new OrderItemServiceMethodDescriptorSupplier("updateOrderItem"))
@@ -88,7 +88,7 @@ public final class OrderItemServiceGrpc {
 
     /**
      */
-    public void updateOrderItem(com.javainuse.orders.UpdateOrderItemRequest request,
+    public void updateOrderItem(com.javainuse.order_items.UpdateOrderItemRequest request,
         io.grpc.stub.StreamObserver<com.google.protobuf.Empty> responseObserver) {
       asyncUnimplementedUnaryCall(getUpdateOrderItemMethod(), responseObserver);
     }
@@ -99,7 +99,7 @@ public final class OrderItemServiceGrpc {
             getUpdateOrderItemMethod(),
             asyncUnaryCall(
               new MethodHandlers<
-                com.javainuse.orders.UpdateOrderItemRequest,
+                com.javainuse.order_items.UpdateOrderItemRequest,
                 com.google.protobuf.Empty>(
                   this, METHODID_UPDATE_ORDER_ITEM)))
           .build();
@@ -126,7 +126,7 @@ public final class OrderItemServiceGrpc {
 
     /**
      */
-    public void updateOrderItem(com.javainuse.orders.UpdateOrderItemRequest request,
+    public void updateOrderItem(com.javainuse.order_items.UpdateOrderItemRequest request,
         io.grpc.stub.StreamObserver<com.google.protobuf.Empty> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getUpdateOrderItemMethod(), getCallOptions()), request, responseObserver);
@@ -153,7 +153,7 @@ public final class OrderItemServiceGrpc {
 
     /**
      */
-    public com.google.protobuf.Empty updateOrderItem(com.javainuse.orders.UpdateOrderItemRequest request) {
+    public com.google.protobuf.Empty updateOrderItem(com.javainuse.order_items.UpdateOrderItemRequest request) {
       return blockingUnaryCall(
           getChannel(), getUpdateOrderItemMethod(), getCallOptions(), request);
     }
@@ -180,7 +180,7 @@ public final class OrderItemServiceGrpc {
     /**
      */
     public com.google.common.util.concurrent.ListenableFuture<com.google.protobuf.Empty> updateOrderItem(
-        com.javainuse.orders.UpdateOrderItemRequest request) {
+        com.javainuse.order_items.UpdateOrderItemRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getUpdateOrderItemMethod(), getCallOptions()), request);
     }
@@ -206,7 +206,7 @@ public final class OrderItemServiceGrpc {
     public void invoke(Req request, io.grpc.stub.StreamObserver<Resp> responseObserver) {
       switch (methodId) {
         case METHODID_UPDATE_ORDER_ITEM:
-          serviceImpl.updateOrderItem((com.javainuse.orders.UpdateOrderItemRequest) request,
+          serviceImpl.updateOrderItem((com.javainuse.order_items.UpdateOrderItemRequest) request,
               (io.grpc.stub.StreamObserver<com.google.protobuf.Empty>) responseObserver);
           break;
         default:
@@ -231,7 +231,7 @@ public final class OrderItemServiceGrpc {
 
     @java.lang.Override
     public com.google.protobuf.Descriptors.FileDescriptor getFileDescriptor() {
-      return com.javainuse.orders.OrderItemServiceOuterClass.getDescriptor();
+      return com.javainuse.order_items.OrderItemServiceOuterClass.getDescriptor();
     }
 
     @java.lang.Override

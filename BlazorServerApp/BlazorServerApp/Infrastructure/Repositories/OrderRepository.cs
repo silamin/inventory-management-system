@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Orders;
 using Status = Orders.Status;
+using Items;
 
 namespace BlazorServerApp.Infrastructure.Repositories
 {
@@ -53,6 +54,18 @@ namespace BlazorServerApp.Infrastructure.Repositories
             catch (RpcException ex)
             {
                 throw new ApplicationException("Error retrieving all orders", ex);
+            }
+        }
+        public async Task UpdateOrderStatus(UpdateOrderStatusRequest newStatus)
+        {
+            try
+            {
+                var callOptions = await GetAuthenticatedCallOptionsAsync();
+                await _client.updateOrderStatusAsync(newStatus, callOptions);
+            }
+            catch (RpcException ex)
+            {
+                throw new ApplicationException("Error editing item", ex);
             }
         }
 
