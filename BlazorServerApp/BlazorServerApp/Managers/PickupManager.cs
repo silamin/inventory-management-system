@@ -112,20 +112,30 @@ namespace BlazorServerApp.Managers
         }
 
 
-        public void ToggleOrderDetails(int orderId, bool isUnassigned)
+        public void ToggleOrderDetails(int orderId, string activeView)
         {
             if (SelectedOrder?.OrderId == orderId)
             {
+                // Deselect the order if it's already selected
                 SelectedOrder = null;
             }
             else
             {
-                SelectedOrder = (isUnassigned ? UnassignedOrders : AssignedOrders).FirstOrDefault(o => o.OrderId == orderId);
-                ViewingUnassignedDetails = isUnassigned;
+                // Select the order based on the active view
+                SelectedOrder = activeView switch
+                {
+                    "Unassigned" => UnassignedOrders.FirstOrDefault(o => o.OrderId == orderId),
+                    "Assigned" => AssignedOrders.FirstOrDefault(o => o.OrderId == orderId),
+                    "Completed" => CompletedOrders.FirstOrDefault(o => o.OrderId == orderId),
+                    _ => null
+                };
+
+                ViewingUnassignedDetails = activeView == "Unassigned";
             }
 
-            NotifyStateChanged();
+            NotifyStateChanged(); // Update the UI
         }
+
 
         public async Task CompleteOrderAsync()
         {

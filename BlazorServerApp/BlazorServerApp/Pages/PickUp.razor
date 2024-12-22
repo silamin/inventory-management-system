@@ -67,10 +67,33 @@ else
                             <td class="text-center">@order.OrderId</td>
                             <td class="text-center">@Manager.FormatTimestamp(order.DeliveryDate)</td>
                             <td class="text-center">
-                                <button class="btn btn-primary btn-sm me-2" @onclick="() => Manager.ToggleOrderDetails(order.OrderId, true)">View Items</button>
+                                <button class="btn btn-primary btn-sm me-2"
+                                        @onclick='() => Manager.ToggleOrderDetails(order.OrderId, "Unassigned")'>
+                                    View Items
+                                </button>
                                 <button class="btn btn-success btn-sm" @onclick="() => Manager.AssignOrderAsync(order)">Assign to Me</button>
                             </td>
                         </tr>
+                        @if (Manager.SelectedOrder?.OrderId == order.OrderId && Manager.ViewingUnassignedDetails)
+                        {
+                            <tr>
+                                <td colspan="3">
+                                    <div class="d-flex flex-wrap">
+                                        @foreach (var item in Manager.SelectedOrder.OrderItems)
+                                        {
+                                            <div class="card m-2" style="width: 18rem;">
+                                                <div class="card-body">
+                                                    <h5 class="card-title">@item.ItemName</h5>
+                                                    <p class="card-text">
+                                                        <strong>Total Quantity:</strong> @item.TotalQuantity
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
                     }
                 </tbody>
             </table>
@@ -104,7 +127,9 @@ else
                             <td class="text-center">@Manager.FormatTimestamp(order.DeliveryDate)</td>
                             <td class="text-center">@Manager.FormatTimestamp(order.CreatedAt)</td>
                             <td class="text-center">
-                                <button class="btn btn-primary btn-sm" @onclick="() => Manager.ToggleOrderDetails(order.OrderId, false)">View Details</button>
+                                <button class="btn btn-primary btn-sm" @onclick='() => Manager.ToggleOrderDetails(order.OrderId, "Assigned")'>
+                                    View Details
+                                </button>
                             </td>
                         </tr>
 
@@ -167,6 +192,7 @@ else
                         <th class="text-center">Order ID</th>
                         <th class="text-center">Delivery Date</th>
                         <th class="text-center">Completion Date</th>
+                        <th class="text-center">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -176,7 +202,33 @@ else
                             <td class="text-center">@order.OrderId</td>
                             <td class="text-center">@Manager.FormatTimestamp(order.DeliveryDate)</td>
                             <td class="text-center">@Manager.FormatTimestamp(order.CompletedAt)</td>
+                            <td class="text-center">
+                                <button class="btn btn-primary btn-sm"
+                                        @onclick='() => Manager.ToggleOrderDetails(order.OrderId, "Completed")'>
+                                    View Details
+                                </button>
+                            </td>
                         </tr>
+                        @if (Manager.SelectedOrder?.OrderId == order.OrderId && !Manager.ViewingUnassignedDetails)
+                        {
+                            <tr>
+                                <td colspan="4">
+                                    <div class="d-flex flex-wrap">
+                                        @foreach (var item in Manager.SelectedOrder.OrderItems)
+                                        {
+                                            <div class="card m-2" style="width: 18rem;">
+                                                <div class="card-body">
+                                                    <h5 class="card-title">@item.ItemName</h5>
+                                                    <p class="card-text">
+                                                        <strong>Total Quantity:</strong> @item.TotalQuantity
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
                     }
                 </tbody>
             </table>
