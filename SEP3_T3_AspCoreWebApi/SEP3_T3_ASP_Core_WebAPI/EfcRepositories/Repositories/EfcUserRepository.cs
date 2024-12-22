@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using SEP3_T3_ASP_Core_WebAPI;
 using SEP3_T3_ASP_Core_WebAPI.RepositoryContracts;
+using static Entities.Roles;
 
 namespace EfcRepositories.Repositories;
 

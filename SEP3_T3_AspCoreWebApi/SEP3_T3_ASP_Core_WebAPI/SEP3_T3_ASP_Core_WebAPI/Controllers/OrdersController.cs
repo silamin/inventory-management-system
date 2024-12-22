@@ -91,7 +91,8 @@ namespace SEP3_T3_ASP_Core_WebAPI.Controllers
                         TotalQuantity = oi.TotalQuantity,
                     }).ToList(),
                     AssignedUser = order.AssignedUser?.UserName,
-                    CreatedBy = order.CreatedBy.UserName
+                    CreatedBy = order.CreatedBy.UserName,
+                    CompletedAt = order.CompletedAt
                 }).ToList();
 
                 return Ok(orderDtos);

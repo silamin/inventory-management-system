@@ -12,6 +12,7 @@ namespace Entities.DTOs
         public List<GetOrderItemDTO> OrderItems { get; set; }
         public string AssignedUser { get; set; }
         public string CreatedBy { get; set; }
+        public DateTimeOffset? CompletedAt { get; set; }
         public DateTimeOffset CreatedAt { get; set; }
     }
 

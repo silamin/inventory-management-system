@@ -1,5 +1,6 @@
 ﻿using Entities;
 using System.Text.Json.Serialization;
+using static Entities.Roles;
 
 namespace SEP3_T3_ASP_Core_WebAPI.ApiContracts.UserDto
 {

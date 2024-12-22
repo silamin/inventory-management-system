@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using static Entities.Roles;
 
 namespace SEP3_T3_ASP_Core_WebAPI.Data
 {
