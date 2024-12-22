@@ -28,20 +28,6 @@ namespace BlazorServerApp.Application.UseCases
             }
         }
 
-        public async Task<IEnumerable<Order>> GetAllOrdersAsync()
-        {
-            try
-            {
-                var orders = await _orderRepository.GetAllOrdersAsync();
-                return orders;
-            }
-            catch (Exception ex)
-            {
-                // Handle exception appropriately (logging, rethrow, etc.)
-                throw new ApplicationException("Error retrieving orders", ex);
-            }
-        }
-
         internal async Task<IEnumerable<Order>> GetOrdersByStatusAsync(OrderStatus status)
         {
             try

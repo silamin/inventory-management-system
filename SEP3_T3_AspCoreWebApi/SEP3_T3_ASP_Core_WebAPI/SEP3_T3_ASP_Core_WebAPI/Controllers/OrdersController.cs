@@ -1,5 +1,6 @@
 ﻿using Entities;
 using Entities.DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SEP3_T3_ASP_Core_WebAPI.RepositoryContracts;
 
@@ -7,6 +8,7 @@ namespace SEP3_T3_ASP_Core_WebAPI.Controllers
 {
     [ApiController]
     [Route("[controller]")]
+    [Authorize]
     public class OrdersController : ControllerBase
     {
         private readonly IOrderRepository orderRepository;
@@ -104,32 +106,5 @@ namespace SEP3_T3_ASP_Core_WebAPI.Controllers
                 return StatusCode(500, "An error occurred while fetching orders by status");
             }
         }
-
-        /*
-         *         
-         *         [HttpGet]
-        public async Task<ActionResult<List<GetOrderDTO>>> GetAllOrders()
-        {
-            var orders = await orderRepository.GetAllOrders();
-            var orderDtos = orders.Select(order => new GetOrderDTO
-            {
-                OrderId = order.OrderId,
-                OrderStatus = order.OrderStatus.ToString(),
-                DeliveryDate = order.DeliveryDate,
-                CreatedAt = order.CreatedAt,
-                OrderItems = order.OrderItems.Select(oi => new GetOrderItemDTO
-                {
-                    itemName = oi.Item.ItemName, // Include only itemName
-                    QuantityToPick = oi.TotalQuantity,
-                    TotalQuantity = oi.TotalQuantity,
-                }).ToList(),
-                AssignedUser = order.AssignedUser?.UserName,
-                CreatedBy = order.CreatedBy.UserName
-            }).ToList();
-
-            return Ok(orderDtos);
-        }
-
-         */
     }
 }

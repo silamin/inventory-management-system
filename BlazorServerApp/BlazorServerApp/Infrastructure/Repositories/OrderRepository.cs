@@ -40,27 +40,6 @@ namespace BlazorServerApp.Infrastructure.Repositories
             }
         }
 
-
-        public async Task<IEnumerable<Order>> GetAllOrdersAsync()
-        {
-            try
-            {
-                // Create an empty request as required by the gRPC method signature
-                var request = new Empty();
-
-                // Call the gRPC service and await the response
-                var response = await _client.getAllOrdersAsync(request);
-
-                // Extract and return the list of orders from the response
-                return response.Orders;
-            }
-            catch (RpcException ex)
-            {
-                // Log and rethrow the exception with an appropriate message
-                throw new ApplicationException("Error retrieving all orders", ex);
-            }
-        }
-
         public async Task<IEnumerable<Order>> GetOrdersAsync(OrderStatus status)
         {
             try

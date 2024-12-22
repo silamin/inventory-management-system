@@ -8,7 +8,6 @@ package orders;
 
 service OrderService {
   rpc createOrder(CreateOrder) returns (CreateOrderResponse);
-  rpc getAllOrders(google.protobuf.Empty) returns (OrderList);
   rpc getOrders(Status) returns (OrderList);
 }
 
@@ -39,6 +38,8 @@ message Order {
   string created_by_user = 5;
   OrderStatus order_status = 6;
   google.protobuf.Timestamp delivery_date = 7;
+  google.protobuf.Timestamp completed_at = 8;
+
 }
 
 message GetOrderItem {
@@ -52,6 +53,7 @@ message OrderList {
 }
 
 enum OrderStatus {
-  COMPLETED = 0;
-  IN_PROGRESS = 1;
+  NOT_STARTED = 0;
+  COMPLETED = 1;
+  IN_PROGRESS = 2;
 }
