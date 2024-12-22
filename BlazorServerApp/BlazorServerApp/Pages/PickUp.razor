@@ -58,7 +58,7 @@ else
                         <td class="text-center">@order.OrderId</td>
                         <td class="text-center">@order.DeliveryDate.ToShortDateString()</td>
                         <td class="text-center">
-                            <button class="btn btn-primary btn-sm me-2" @onclick="() => ToggleOrderDetails(order.OrderId, true)">View Details</button>
+                            <button class="btn btn-primary btn-sm me-2" @onclick="() => ToggleOrderDetails(order.OrderId, true)">View Items</button>
                             <button class="btn btn-success btn-sm" @onclick="() => AssignOrder(order)">Assign to Me</button>
                         </td>
                     </tr>
@@ -68,31 +68,18 @@ else
                         <tr>
                             <td colspan="3">
                                 <div class="mt-2">
-                                    <h5>Order Details</h5>
-                                    <p>Delivery Date: @SelectedOrder.DeliveryDate.ToShortDateString()</p>
-                                    <table class="table table-sm table-bordered mt-2">
-                                        <thead>
-                                            <tr class="table-light">
-                                                <th>Item Name</th>
-                                                <th class="text-center">Quantity</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach (var item in SelectedOrder.Items)
-                                            {
-                                                <tr>
-                                                    <td>@item.ItemName</td>
-                                                    <td class="text-center">@item.QuantityToPick</td>
-                                                </tr>
-                                            }
-                                        </tbody>
-                                    </table>
+                                    <h5>Order Items</h5>
+                                    <p>
+                                        @string.Join(" , ", SelectedOrder.Items.Select(item => $"{item.ItemName} ({item.QuantityToPick})"))
+                                    </p>
                                 </div>
                             </td>
                         </tr>
                     }
                 }
             </tbody>
+
+
         </table>
     }
     else if (ActiveView == "Assigned")
@@ -103,7 +90,7 @@ else
                 <tr>
                     <th class="text-center">Order ID</th>
                     <th class="text-center">Delivery Date</th>
-                    <th class="text-center">Status</th>
+                    <th class="text-center">Created At</th> <!-- Updated column -->
                     <th class="text-center">Actions</th>
                 </tr>
             </thead>
@@ -113,7 +100,7 @@ else
                     <tr>
                         <td class="text-center">@order.OrderId</td>
                         <td class="text-center">@order.DeliveryDate.ToShortDateString()</td>
-                        <td class="text-center">@order.Status</td>
+                        <td class="text-center">@order.CreatedAt.ToShortDateString()</td> <!-- Display CreatedAt -->
                         <td class="text-center">
                             <button class="btn btn-primary btn-sm" @onclick="() => ToggleOrderDetails(order.OrderId, false)">View Details</button>
                         </td>
@@ -159,6 +146,7 @@ else
                     }
                 }
             </tbody>
+
         </table>
     }
     else if (ActiveView == "Completed")
@@ -230,30 +218,31 @@ else
         };
 
         Orders = new List<Order>
+{
+    new Order
+    {
+        OrderId = 1,
+        DeliveryDate = DateTime.Now.AddDays(3),
+        CreatedAt = DateTime.Now.AddDays(-5), // Example created date
+        Items = new List<OrderItem>
         {
-            new Order
-            {
-                OrderId = 1,
-                DeliveryDate = DateTime.Now.AddDays(3),
-                Status = "In Progress",
-                Items = new List<OrderItem>
-                {
-                    new OrderItem { ItemName = "Item 1", QuantityToPick = 5, PickedQuantity = 0 },
-                    new OrderItem { ItemName = "Item 2", QuantityToPick = 3, PickedQuantity = 2 }
-                }
-            },
-            new Order
-            {
-                OrderId = 2,
-                DeliveryDate = DateTime.Now.AddDays(5),
-                Status = "In Progress",
-                Items = new List<OrderItem>
-                {
-                    new OrderItem { ItemName = "Item 3", QuantityToPick = 4, PickedQuantity = 4 },
-                    new OrderItem { ItemName = "Item 4", QuantityToPick = 2, PickedQuantity = 1 }
-                }
-            }
-        };
+            new OrderItem { ItemName = "Item 1", QuantityToPick = 5, PickedQuantity = 0 },
+            new OrderItem { ItemName = "Item 2", QuantityToPick = 3, PickedQuantity = 2 }
+        }
+    },
+    new Order
+    {
+        OrderId = 2,
+        DeliveryDate = DateTime.Now.AddDays(5),
+        CreatedAt = DateTime.Now.AddDays(-4), // Example created date
+        Items = new List<OrderItem>
+        {
+            new OrderItem { ItemName = "Item 3", QuantityToPick = 4, PickedQuantity = 4 },
+            new OrderItem { ItemName = "Item 4", QuantityToPick = 2, PickedQuantity = 1 }
+        }
+    }
+};
+
 
         CompletedOrders = new List<Order>
         {
@@ -332,6 +321,7 @@ else
         public DateTime DeliveryDate { get; set; }
         public string Status { get; set; } = string.Empty;
         public List<OrderItem> Items { get; set; } = new();
+        public DateTime CreatedAt { get; set; } // New property
         public DateTime? CompletionDate { get; set; }
     }
 
