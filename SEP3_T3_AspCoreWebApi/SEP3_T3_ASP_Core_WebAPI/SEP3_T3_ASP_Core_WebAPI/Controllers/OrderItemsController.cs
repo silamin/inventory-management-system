@@ -34,6 +34,12 @@ public class OrderItemsController: ControllerBase
                 return NotFound($"OrderItem with ID {id} not found.");
             }
 
+            // Update the pick quantity
+            if (QuantityToPick > orderItem.TotalQuantity || QuantityToPick < 0)
+            {
+                return BadRequest("QuantityToPick cannot be greater than TotalQuantity or less than 0.");
+            }
+
             orderItem.QuantityToPick = QuantityToPick;
 
             // Save the updated order item
