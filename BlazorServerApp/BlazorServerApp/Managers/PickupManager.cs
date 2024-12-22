@@ -32,29 +32,46 @@ namespace BlazorServerApp.Managers
             _toastService = toastService;
         }
 
-        public async Task LoadOrdersAsync()
+        public async Task LoadOrdersAsync(string view)
         {
             IsLoading = true;
             NotifyStateChanged();
 
             try
             {
-                var unassignedResponse = await _orderUseCases.GetOrdersByStatusAsync(OrderStatus.NotStarted);
-                var assignedResponse = await _orderUseCases.GetOrdersByStatusAsync(OrderStatus.InProgress);
-                var completedResponse = await _orderUseCases.GetOrdersByStatusAsync(OrderStatus.Completed);
-
-                UnassignedOrders = unassignedResponse.ToList();
-                AssignedOrders = assignedResponse.ToList();
-                CompletedOrders = completedResponse.ToList();
+                if (view == "Unassigned")
+                {
+                    var unassignedResponse = await _orderUseCases.GetOrdersByStatusAsync(OrderStatus.NotStarted);
+                    UnassignedOrders = unassignedResponse.ToList();
+                }
+                else if (view == "Assigned")
+                {
+                    var assignedResponse = await _orderUseCases.GetOrdersByStatusAsync(OrderStatus.InProgress);
+                    AssignedOrders = assignedResponse.ToList();
+                }
+                else if (view == "Completed")
+                {
+                    var completedResponse = await _orderUseCases.GetOrdersByStatusAsync(OrderStatus.Completed);
+                    CompletedOrders = completedResponse.ToList();
+                }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error loading orders: {ex.Message}");
+                _toastService.ShowError("Failed to load orders. Please try again.");
             }
             finally
             {
                 IsLoading = false;
                 NotifyStateChanged();
+            }
+        }
+        public async Task ChangeViewAsync(string newView)
+        {
+            if (ActiveView != newView)
+            {
+                ActiveView = newView;
+                await LoadOrdersAsync(newView);
             }
         }
 

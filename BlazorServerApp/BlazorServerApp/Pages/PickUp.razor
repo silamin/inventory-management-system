@@ -28,15 +28,15 @@ else
 {
     <div class="d-flex w-100 mb-4">
         <button class="btn @(Manager.ActiveView == "Unassigned" ? "btn-danger" : "btn-outline-danger") flex-fill me-2"
-                @onclick='() => Manager.ActiveView = "Unassigned"'>
+                @onclick='() => Manager.ChangeViewAsync("Unassigned")'>
             Unassigned Orders
         </button>
         <button class="btn @(Manager.ActiveView == "Assigned" ? "btn-success" : "btn-outline-success") flex-fill mx-2"
-                @onclick='() => Manager.ActiveView = "Assigned"'>
+                @onclick='() => Manager.ChangeViewAsync("Assigned")'>
             Assigned Orders
         </button>
         <button class="btn @(Manager.ActiveView == "Completed" ? "btn-secondary" : "btn-outline-secondary") flex-fill ms-2"
-                @onclick='() => Manager.ActiveView = "Completed"'>
+                @onclick='() => Manager.ChangeViewAsync("Completed")'>
             Completed Orders
         </button>
     </div>
@@ -188,8 +188,9 @@ else
 @code {
     protected override async Task OnInitializedAsync()
     {
-        await Manager.LoadOrdersAsync();
+        await Manager.LoadOrdersAsync("Unassigned");
     }
+
 
     private void Logout()
     {
