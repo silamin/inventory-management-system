@@ -101,6 +101,8 @@ public class CustomAuthenticationStateProvider : AuthenticationStateProvider
             var tokenResult = await _protectedSessionStore.GetAsync<string>("authToken");
             _cachedToken = tokenResult.Success ? tokenResult.Value : null;
         }
+        Console.WriteLine("Stored Token: " + _cachedToken);
+
 
         return _cachedToken;
     }
