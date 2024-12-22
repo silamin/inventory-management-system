@@ -63,20 +63,6 @@ else
                             <button class="btn btn-success btn-sm" @onclick="() => Manager.AssignOrder(order)">Assign to Me</button>
                         </td>
                     </tr>
-
-                    @if (Manager.SelectedOrder?.OrderId == order.OrderId && Manager.ViewingUnassignedDetails)
-                    {
-                        <tr>
-                            <td colspan="3">
-                                <div class="mt-2">
-                                    <h5>Order Items</h5>
-                                    <p>
-                                        @string.Join(", ", Manager.SelectedOrder.OrderItems.Select(item => $"{item.ItemName} ({item.QuantityToPick})"))
-                                    </p>
-                                </div>
-                            </td>
-                        </tr>
-                    }
                 }
             </tbody>
         </table>
@@ -111,13 +97,13 @@ else
                             <td colspan="4">
                                 <div class="mt-2">
                                     <h5>Order Details</h5>
-                                    <p>Delivery Date: @Manager.FormatTimestamp(Manager.SelectedOrder.DeliveryDate)</p>
                                     <table class="table table-sm table-bordered mt-2">
                                         <thead>
                                             <tr class="table-light">
                                                 <th>Item Name</th>
                                                 <th class="text-center">Quantity to Pick</th>
                                                 <th class="text-center">Picked</th>
+                                                <th class="text-center">Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -126,11 +112,18 @@ else
                                                 <tr>
                                                     <td>@item.ItemName</td>
                                                     <td class="text-center">@item.QuantityToPick</td>
-                                                    <td class="text-center">@item.TotalQuantity</td>
+                                                    <td class="text-center">@(@item.TotalQuantity - @item.QuantityToPick)</td>
+                                                    <td class="text-center">
+                                                        <button class="btn btn-success btn-sm" @onclick="() => Manager.PickupItem(item)" disabled="@(item.QuantityToPick == 0)">Pick up item</button>
+                                                        <button class="btn btn-warning btn-sm" @onclick="() => Manager.RevertPickupItem(item)" disabled="@(item.QuantityToPick == item.TotalQuantity)">Revert</button>
+                                                    </td>
                                                 </tr>
                                             }
                                         </tbody>
                                     </table>
+                                    <div class="text-center mt-4">
+                                        <button class="btn btn-success" @onclick="Manager.CompleteOrder" disabled="@(!Manager.CanCompleteOrder())">Complete Order</button>
+                                    </div>
                                 </div>
                             </td>
                         </tr>
@@ -148,7 +141,6 @@ else
                     <th class="text-center">Order ID</th>
                     <th class="text-center">Delivery Date</th>
                     <th class="text-center">Completion Date</th>
-                    <th class="text-center">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -158,24 +150,7 @@ else
                         <td class="text-center">@order.OrderId</td>
                         <td class="text-center">@Manager.FormatTimestamp(order.DeliveryDate)</td>
                         <td class="text-center">@Manager.FormatTimestamp(order.CompletedAt)</td>
-                        <td class="text-center">
-                            <button class="btn btn-primary btn-sm" @onclick="() => Manager.ToggleOrderDetails(order.OrderId, false)">View Items</button>
-                        </td>
                     </tr>
-
-                    @if (Manager.SelectedOrder?.OrderId == order.OrderId && !Manager.ViewingUnassignedDetails)
-                    {
-                        <tr>
-                            <td colspan="4">
-                                <div class="mt-2">
-                                    <h5>Order Items</h5>
-                                    <p>
-                                        @string.Join(", ", Manager.SelectedOrder.OrderItems.Select(item => $"{item.ItemName} (Picked: {item.QuantityToPick} / {item.TotalQuantity})"))
-                                    </p>
-                                </div>
-                            </td>
-                        </tr>
-                    }
                 }
             </tbody>
         </table>
@@ -193,4 +168,3 @@ else
         Console.WriteLine("Logged out successfully!");
     }
 }
-

@@ -77,9 +77,9 @@ namespace BlazorServerApp.Managers
 
         public void CompleteOrder()
         {
-            if (SelectedOrder != null)
+            if (SelectedOrder != null && CanCompleteOrder())
             {
-                SelectedOrder.OrderStatus = OrderStatus.Completed;
+                SelectedOrder.OrderStatus = OrderStatus.Completed; // Match your proto enum
                 SelectedOrder.CompletedAt = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
                 CompletedOrders.Add(SelectedOrder);
                 AssignedOrders.Remove(SelectedOrder);
@@ -100,8 +100,16 @@ namespace BlazorServerApp.Managers
 
         public void RevertPickupItem(GetOrderItem item)
         {
-            item.QuantityToPick++;
-            NotifyStateChanged();
+            if (item.QuantityToPick < item.TotalQuantity)
+            {
+                item.QuantityToPick++;
+                NotifyStateChanged();
+            }
+        }
+
+        public bool CanCompleteOrder()
+        {
+            return SelectedOrder?.OrderItems.All(i => i.QuantityToPick == 0) ?? false;
         }
 
         private Action? _stateChangedCallback;
@@ -115,10 +123,10 @@ namespace BlazorServerApp.Managers
         {
             _stateChangedCallback?.Invoke();
         }
+
         public string FormatTimestamp(Google.Protobuf.WellKnownTypes.Timestamp timestamp)
         {
             return timestamp?.ToDateTime().ToString("yyyy-MM-dd") ?? string.Empty;
         }
-
     }
 }
