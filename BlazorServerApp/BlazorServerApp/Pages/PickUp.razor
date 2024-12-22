@@ -8,7 +8,7 @@
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="text-dark fw-bold">Pick-Up Management</h1>
-    <button class="btn btn-danger" @onclick="Logout">
+    <button class="btn btn-danger" @onclick="Manager.Logout">
         <i class="fas fa-sign-out-alt"></i> Logout
     </button>
 </div>
@@ -189,11 +189,5 @@ else
     protected override async Task OnInitializedAsync()
     {
         await Manager.LoadOrdersAsync("Unassigned");
-    }
-
-
-    private void Logout()
-    {
-        Console.WriteLine("Logged out successfully!");
     }
 }

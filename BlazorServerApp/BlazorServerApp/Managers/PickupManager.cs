@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Blazored.Toast.Services;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components;
 
 namespace BlazorServerApp.Managers
 {
@@ -13,6 +15,8 @@ namespace BlazorServerApp.Managers
     {
         private readonly OrderUseCases _orderUseCases;
         private readonly OrderItemUseCases _orderItemUseCases;
+        private readonly AuthenticationStateProvider _authenticationStateProvider;
+
 
         public bool IsLoading { get; private set; } = false;
         public string ActiveView { get; set; } = "Unassigned";
@@ -23,13 +27,17 @@ namespace BlazorServerApp.Managers
         public List<Order> AssignedOrders { get; private set; } = new();
         public List<Order> CompletedOrders { get; private set; } = new();
         private readonly IToastService _toastService;
+        private readonly NavigationManager _navigationManager; // Add NavigationManager
 
 
-        public PickupManager(OrderUseCases orderUseCases, OrderItemUseCases orderItemUseCases, IToastService toastService)
+
+        public PickupManager(OrderUseCases orderUseCases, OrderItemUseCases orderItemUseCases, IToastService toastService, AuthenticationStateProvider authenticationStateProvider, NavigationManager navigationManager)
         {
             _orderUseCases = orderUseCases;
             _orderItemUseCases = orderItemUseCases;
             _toastService = toastService;
+            _authenticationStateProvider = authenticationStateProvider;
+            _navigationManager = navigationManager; // Assign NavigationManager
         }
 
         public async Task LoadOrdersAsync(string view)
@@ -87,9 +95,7 @@ namespace BlazorServerApp.Managers
 
                 await _orderUseCases.UpdateOrderStatusAsync(request);
 
-                UnassignedOrders.Remove(order);
-                AssignedOrders.Add(order);
-                order.OrderStatus = OrderStatus.InProgress;
+                await LoadOrdersAsync(ActiveView);
 
                 NotifyStateChanged();
 
@@ -135,11 +141,8 @@ namespace BlazorServerApp.Managers
 
                     await _orderUseCases.UpdateOrderStatusAsync(request);
 
-                    SelectedOrder.OrderStatus = OrderStatus.Completed;
-                    SelectedOrder.CompletedAt = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(DateTime.UtcNow);
-                    CompletedOrders.Add(SelectedOrder);
-                    AssignedOrders.Remove(SelectedOrder);
                     SelectedOrder = null;
+                    await LoadOrdersAsync(ActiveView);
 
                     _toastService.ShowSuccess("Order completed successfully!");
 
@@ -220,6 +223,12 @@ namespace BlazorServerApp.Managers
         public void RegisterStateChangeCallback(Action callback)
         {
             _stateChangedCallback = callback;
+        }
+        public void Logout()
+        {
+            ((CustomAuthenticationStateProvider)_authenticationStateProvider).MarkUserAsLoggedOut();
+            _navigationManager.NavigateTo("/login");
+
         }
 
         private void NotifyStateChanged()
