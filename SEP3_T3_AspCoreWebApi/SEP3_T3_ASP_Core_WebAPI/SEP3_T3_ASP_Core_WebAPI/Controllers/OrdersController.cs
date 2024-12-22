@@ -3,6 +3,7 @@ using Entities.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SEP3_T3_ASP_Core_WebAPI.RepositoryContracts;
+using System.Security.Claims;
 using static Entities.Roles;
 
 namespace SEP3_T3_ASP_Core_WebAPI.Controllers
@@ -72,16 +73,56 @@ namespace SEP3_T3_ASP_Core_WebAPI.Controllers
         {
             try
             {
+                Console.WriteLine($"Received request to fetch orders with status: {status}");
+
                 // Parse the provided status
                 if (!Enum.TryParse<OrderStatus>(status, true, out var orderStatus))
                 {
+                    Console.WriteLine($"Invalid order status provided: {status}");
                     return BadRequest($"Invalid order status: {status}");
+                }
+                Console.WriteLine($"Parsed order status: {orderStatus}");
+
+                // Debugging: Log all claims in the token
+                Console.WriteLine("Token Claims:");
+                foreach (var claim in User.Claims)
+                {
+                    Console.WriteLine($"Type: {claim.Type}, Value: {claim.Value}");
+                }
+
+                // Get the user's role and ID from the token
+                var userRole = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role ||
+                                                               c.Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/role")?.Value;
+
+                var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier || c.Type == "sub")?.Value;
+
+                Console.WriteLine($"Extracted user role: {userRole}, user ID: {userId}");
+
+                if (userRole == null || userId == null)
+                {
+                    Console.WriteLine("Invalid token: missing role or user ID.");
+                    return Unauthorized("Invalid token: missing role or user ID.");
                 }
 
                 // Fetch orders by status from the repository
+                Console.WriteLine($"Fetching orders from repository for status: {orderStatus}");
                 var orders = await orderRepository.GetOrdersByStatus(orderStatus);
 
+                Console.WriteLine($"Fetched {orders.Count} orders from repository.");
+
+                // Apply filtering based on role and status
+                if (userRole == UserRole.WAREHOUSE_WORKER.ToString())
+                {
+                    if (orderStatus == OrderStatus.IN_PROGRESS || orderStatus == OrderStatus.COMPLETED)
+                    {
+                        Console.WriteLine($"Filtering orders for {userRole} with status: {orderStatus}");
+                        orders = orders.Where(o => o.AssignedUser?.UserId.ToString() == userId).ToList();
+                        Console.WriteLine($"Filtered orders count: {orders.Count}");
+                    }
+                }
+
                 // Map orders to DTOs
+                Console.WriteLine("Mapping orders to DTOs.");
                 var orderDtos = orders.Select(order => new GetOrderDTO
                 {
                     OrderId = order.OrderId,
@@ -99,6 +140,7 @@ namespace SEP3_T3_ASP_Core_WebAPI.Controllers
                     CompletedAt = order.CompletedAt
                 }).ToList();
 
+                Console.WriteLine($"Successfully mapped {orderDtos.Count} orders to DTOs.");
                 return Ok(orderDtos);
             }
             catch (Exception ex)
@@ -108,5 +150,8 @@ namespace SEP3_T3_ASP_Core_WebAPI.Controllers
                 return StatusCode(500, "An error occurred while fetching orders by status");
             }
         }
+
+
+
     }
 }
