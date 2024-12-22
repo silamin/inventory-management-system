@@ -55,6 +55,7 @@ builder.Services.AddScoped<OrderUseCases>();
 
 builder.Services.AddScoped<InventoryManager>();
 builder.Services.AddScoped<OrderHistoryManager>();
+builder.Services.AddScoped<PickupManager>();
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<UserUseCases>();
