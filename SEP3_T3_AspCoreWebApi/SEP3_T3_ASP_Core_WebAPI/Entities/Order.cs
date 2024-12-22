@@ -18,9 +18,12 @@
         public int CreatedById { get; set; } // Foreign key to the User who created the order
 
         public DateTimeOffset CreatedAt { get; set; } // Timestamp for order creation
+        public DateTimeOffset? CompletedAt { get; set; } // Nullable timestamp for when the order is marked as completed
+
     }
     public enum OrderStatus
     {
+        NOT_STARTED,
         IN_PROGRESS,
         COMPLETED
     }

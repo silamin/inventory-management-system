@@ -24,35 +24,6 @@ namespace SEP3_T3_ASP_Core_WebAPI.Controllers
             this.configuration = configuration;
         }
 
-        [HttpPost("validate")]
-        public IActionResult ValidateToken([FromBody] string token)
-        {
-            var key = Encoding.UTF8.GetBytes("xgjpxug32J3rW0pICEadjgUIPj/TrwGl57wNvwJQJms=");
-
-            try
-            {
-                // Validate the token manually
-                var tokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(key),
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
-                    ValidateLifetime = true,
-                    ClockSkew = TimeSpan.Zero
-                };
-
-                var tokenHandler = new TokenHandler();
-                var principal = tokenHandler.ValidateToken(token, tokenValidationParameters);
-
-                return Ok(new { Message = "Token is valid", Claims = principal.Claims.Select(c => new { c.Type, c.Value }) });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest($"Token validation failed: {ex.Message}");
-            }
-        }
-
         [HttpPost("login")]
         [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] LoginRequest loginRequest)

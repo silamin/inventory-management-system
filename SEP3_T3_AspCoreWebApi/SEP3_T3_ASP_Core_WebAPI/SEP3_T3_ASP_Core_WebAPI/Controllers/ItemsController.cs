@@ -4,13 +4,14 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SEP3_T3_ASP_Core_WebAPI.ApiContracts.ItemDto;
 using SEP3_T3_ASP_Core_WebAPI.RepositoryContracts;
+using static Entities.Roles;
 
 
 namespace SEP3_T3_ASP_Core_WebAPI.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-[Authorize(Roles = "INVENTORY_MANAGER")]
+[Authorize(Roles = INVENTORY_MANAGER)]
 public class ItemsController: ControllerBase
 {
     private readonly IItemRepository itemRepository;

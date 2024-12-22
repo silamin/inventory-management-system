@@ -1,12 +1,7 @@
-﻿using System.Text.Json.Serialization;
+﻿using static Entities.Roles;
 
 namespace Entities
 {
-    public enum UserRole
-    {
-        INVENTORY_MANAGER,
-        WAREHOUSE_WORKER
-    }
     public class User
     {
         public int UserId { get; set; }

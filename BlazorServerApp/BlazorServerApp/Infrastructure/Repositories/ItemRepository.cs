@@ -19,6 +19,9 @@ namespace BlazorServerApp.Infrastructure.Repositories
         private async Task<CallOptions> GetAuthenticatedCallOptionsAsync()
         {
             var token = await _authStateProvider.GetTokenAsync();
+            Console.WriteLine($"Token: {token}");
+            Console.WriteLine($"Authorization Header: Bearer {token}");
+
             var metadata = new Metadata();
             if (!string.IsNullOrEmpty(token))
             {
