@@ -43,6 +43,10 @@ else
     </div>
 
     <div class="d-flex w-100 mb-4">
+        <button class="btn @(IsActiveViewNotStarted() ? "btn-secondary" : "btn-outline-secondary") flex-fill me-2"
+                @onclick="SwitchViewNotStarted">
+            Not Started
+        </button>
         <button class="btn @(IsActiveViewInProgress() ? "btn-primary" : "btn-outline-primary") flex-fill me-2"
                 @onclick="SwitchViewInProgress">
             In Progress
@@ -70,12 +74,22 @@ else
                     <th class="text-center" @onclick="() => ApplySortingByDeliveryDate()" style="cursor: pointer;">
                         Delivery Date <i class="@(GetSortIcon("DeliveryDate"))"></i>
                     </th>
-                    <th class="text-center" @onclick="() => ApplySortingByAssignedUser()" style="cursor: pointer;">
-                        Assigned User <i class="@(GetSortIcon("AssignedUser"))"></i>
-                    </th>
-                    <th class="text-center" @onclick="() => ApplySortingByCreatedBy()" style="cursor: pointer;">
-                        Created By <i class="@(GetSortIcon("CreatedBy"))"></i>
-                    </th>
+                    @if (ActiveView == OrderStatus.Completed)
+                    {
+                        <th class="text-center">Completed At</th>
+                        <th class="text-center" @onclick="() => ApplySortingByAssignedUser()" style="cursor: pointer;">
+                            Assigned User <i class="@(GetSortIcon("AssignedUser"))"></i>
+                        </th>
+                    }
+                    else if (ActiveView == OrderStatus.InProgress)
+                    {
+                        <th class="text-center" @onclick="() => ApplySortingByAssignedUser()" style="cursor: pointer;">
+                            Assigned User <i class="@(GetSortIcon("AssignedUser"))"></i>
+                        </th>
+                        <th class="text-center" @onclick="() => ApplySortingByCreatedBy()" style="cursor: pointer;">
+                            Created By <i class="@(GetSortIcon("CreatedBy"))"></i>
+                        </th>
+                    }
                 </tr>
             </thead>
             <tbody>
@@ -85,8 +99,16 @@ else
                         <td class="text-center">@order.OrderId</td>
                         <td class="text-center">@order.CreatedAt.ToDateTime().ToString("g")</td>
                         <td class="text-center">@order.DeliveryDate.ToDateTime().ToString("g")</td>
-                        <td class="text-center">@order.AssignedUser</td>
-                        <td class="text-center">@order.CreatedByUser</td>
+                        @if (ActiveView == OrderStatus.Completed)
+                        {
+                            <td class="text-center">@order.CompletedAt?.ToDateTime().ToString("g")</td>
+                            <td class="text-center">@order.AssignedUser</td>
+                        }
+                        else if (ActiveView == OrderStatus.InProgress)
+                        {
+                            <td class="text-center">@order.AssignedUser</td>
+                            <td class="text-center">@order.CreatedByUser</td>
+                        }
                     </tr>
                     @if (ActiveView == OrderStatus.Completed)
                     {
@@ -129,6 +151,21 @@ else
                                         }
                                     </tbody>
                                 </table>
+                            </td>
+                        </tr>
+                    }
+                    else if (ActiveView == OrderStatus.NotStarted)
+                    {
+                        <tr>
+                            <td colspan="3">
+                                <div class="d-flex flex-wrap p-2">
+                                    @foreach (var item in order.OrderItems)
+                                    {
+                                        <div class="me-3">
+                                            <strong>@item.ItemName</strong>: @item.TotalQuantity
+                                        </div>
+                                    }
+                                </div>
                             </td>
                         </tr>
                     }
@@ -211,6 +248,15 @@ else
         ActiveView = OrderStatus.InProgress;
         await LoadOrdersAsync();
     }
+
+    private async Task SwitchViewNotStarted()
+    {
+        ActiveView = OrderStatus.NotStarted;
+        await LoadOrdersAsync();
+    }
+
+    private bool IsActiveViewNotStarted() => ActiveView == OrderStatus.NotStarted;
+
 
     private void ApplySorting(string column)
     {

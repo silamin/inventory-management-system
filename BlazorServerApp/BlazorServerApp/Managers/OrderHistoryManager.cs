@@ -41,6 +41,8 @@ public class OrderHistoryManager
         _stateChangedCallback?.Invoke();
     }
 
+    private List<Order> NotStartedOrders = new();
+
     public async Task LoadOrdersAsync(OrderStatus status)
     {
         IsLoading = true;
@@ -50,7 +52,11 @@ public class OrderHistoryManager
         {
             var response = await _orderUseCases.GetOrdersByStatusAsync(status);
 
-            if (status == OrderStatus.InProgress)
+            if (status == OrderStatus.NotStarted)
+            {
+                NotStartedOrders = response.ToList();
+            }
+            else if (status == OrderStatus.InProgress)
             {
                 InProgressOrders = response.ToList();
             }
@@ -72,18 +78,24 @@ public class OrderHistoryManager
 
     public IEnumerable<Order> GetOrdersByStatus(OrderStatus status)
     {
-        var orders = status == OrderStatus.InProgress ? InProgressOrders : CompletedOrders;
-
-        // Ensure filtering logic includes all cases
+        var orders = status switch
+        {
+            OrderStatus.NotStarted => NotStartedOrders,
+            OrderStatus.InProgress => InProgressOrders,
+            OrderStatus.Completed => CompletedOrders,
+            _ => new List<Order>()
+        };
         var filteredOrders = orders
-            .Where(o =>
-                (string.IsNullOrEmpty(SearchQuery) || o.OrderId.ToString().Contains(SearchQuery, StringComparison.OrdinalIgnoreCase)) &&
-                (!StartDate.HasValue || o.CreatedAt.ToDateTime() >= StartDate.Value) &&
-                (!EndDate.HasValue || o.CreatedAt.ToDateTime() <= EndDate.Value));
+    .Where(o =>
+        (string.IsNullOrEmpty(SearchQuery) || o.OrderId.ToString().Contains(SearchQuery, StringComparison.OrdinalIgnoreCase)) &&
+        (!StartDate.HasValue || o.CreatedAt.ToDateTime() >= StartDate.Value) &&
+        (!EndDate.HasValue || o.CreatedAt.ToDateTime() <= EndDate.Value));
 
         // Sort orders based on the selected column and direction
         return SortOrders(filteredOrders);
+
     }
+
 
     private IEnumerable<Order> SortOrders(IEnumerable<Order> orders)
     {
