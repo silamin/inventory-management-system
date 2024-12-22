@@ -69,11 +69,11 @@ namespace SEP3_T3_ASP_Core_WebAPI.Controllers
         }
 
         [HttpGet("status/{status}")]
-        public async Task<ActionResult<List<GetOrderDTO>>> GetOrdersByStatus([FromRoute] OrderStatus orderStatus)
+        public async Task<ActionResult<List<GetOrderDTO>>> GetOrdersByStatus([FromRoute] OrderStatus status)
         {
             try
             {
-                Console.WriteLine($"Parsed order status: {orderStatus}");
+                Console.WriteLine($"Parsed order status: {status}");
 
                 // Debugging: Log all claims in the token
                 Console.WriteLine("Token Claims:");
@@ -97,17 +97,17 @@ namespace SEP3_T3_ASP_Core_WebAPI.Controllers
                 }
 
                 // Fetch orders by status from the repository
-                Console.WriteLine($"Fetching orders from repository for status: {orderStatus}");
-                var orders = await orderRepository.GetOrdersByStatus(orderStatus);
+                Console.WriteLine($"Fetching orders from repository for status: {status}");
+                var orders = await orderRepository.GetOrdersByStatus(status);
 
                 Console.WriteLine($"Fetched {orders.Count} orders from repository.");
 
                 // Apply filtering based on role and status
                 if (userRole == UserRole.WAREHOUSE_WORKER.ToString())
                 {
-                    if (orderStatus == OrderStatus.IN_PROGRESS || orderStatus == OrderStatus.COMPLETED)
+                    if (status == OrderStatus.IN_PROGRESS || status == OrderStatus.COMPLETED)
                     {
-                        Console.WriteLine($"Filtering orders for {userRole} with status: {orderStatus}");
+                        Console.WriteLine($"Filtering orders for {userRole} with status: {status}");
                         orders = orders.Where(o => o.AssignedUser?.UserId.ToString() == userId).ToList();
                         Console.WriteLine($"Filtered orders count: {orders.Count}");
                     }

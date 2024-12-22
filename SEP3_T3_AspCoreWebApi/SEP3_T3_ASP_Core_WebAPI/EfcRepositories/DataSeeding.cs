@@ -102,7 +102,7 @@ namespace SEP3_T3_ASP_Core_WebAPI.Data
                             OrderStatus = orderStatus,
                             DeliveryDate = DateTime.UtcNow.AddDays(-i),
                             CreatedById = i % 2 == 0 ? user1.UserId : user2.UserId,
-                            UserId = i % 2 == 0 ? user1.UserId : user2.UserId,
+                            UserId = orderStatus == OrderStatus.NOT_STARTED ? (int?)null : (i % 2 == 0 ? user1.UserId : user2.UserId), // Set UserId to null for NOT_STARTED
                             CreatedAt = DateTimeOffset.UtcNow,
                             CompletedAt = orderStatus == OrderStatus.COMPLETED ? DateTimeOffset.UtcNow : null,
                             OrderItems = new List<OrderItem>()
@@ -123,13 +123,18 @@ namespace SEP3_T3_ASP_Core_WebAPI.Data
                                     TotalQuantity = totalQuantity
                                 };
 
-                                if (order.OrderStatus == OrderStatus.IN_PROGRESS)
+                                // Set QuantityToPick based on OrderStatus
+                                if (order.OrderStatus == OrderStatus.NOT_STARTED)
                                 {
-                                    orderItem.QuantityToPick = random.Next(1, totalQuantity);
+                                    orderItem.QuantityToPick = totalQuantity; // Same as TotalQuantity
                                 }
-                                else if (order.OrderStatus == OrderStatus.NOT_STARTED)
+                                else if (order.OrderStatus == OrderStatus.IN_PROGRESS)
                                 {
-                                    orderItem.QuantityToPick = randomItem.QuantityInStore;
+                                    orderItem.QuantityToPick = random.Next(1, totalQuantity + 1); // Between 1 and TotalQuantity
+                                }
+                                else if (order.OrderStatus == OrderStatus.COMPLETED)
+                                {
+                                    orderItem.QuantityToPick = 0; // Always 0
                                 }
 
                                 order.OrderItems.Add(orderItem);
@@ -138,6 +143,7 @@ namespace SEP3_T3_ASP_Core_WebAPI.Data
 
                         orders.Add(order);
                     }
+
 
                     context.Orders.AddRange(orders.GetRange(3, orders.Count - 3));
                     context.SaveChanges();
