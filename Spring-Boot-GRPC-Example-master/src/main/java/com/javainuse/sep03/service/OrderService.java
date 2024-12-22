@@ -138,6 +138,37 @@ public class OrderService extends OrderServiceGrpc.OrderServiceImplBase {
                 );
     }
 
+    @Override
+    public void updateOrderStatus(UpdateOrderStatusRequest request, StreamObserver<Empty> responseObserver) {
+        logger.info("Received request to update order status for orderId: {}", request.getOrderId());
+
+        String token = getTokenFromContext();
+        if (token == null) {
+            logger.error("Authorization token is missing");
+            responseObserver.onError(new RuntimeException("Authorization token is missing"));
+            return;
+        }
+
+        webClient.put()
+                .uri(uriBuilder -> uriBuilder.path("/{orderId}/status").build(request.getOrderId()))
+                .headers(headers -> headers.setBearerAuth(token)) // Set Bearer token
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(Map.of("newStatus", request.getNewStatus().name())) // Use enum's name() for string conversion
+                .retrieve()
+                .toBodilessEntity()
+                .subscribe(
+                        response -> {
+                            logger.info("Order status updated successfully");
+                            responseObserver.onNext(Empty.newBuilder().build());
+                            responseObserver.onCompleted();
+                        },
+                        error -> {
+                            logger.error("Error occurred while updating order status", error);
+                            responseObserver.onError(error);
+                        }
+                );
+    }
+
     private List<Order> mapOrdersFromApiResponse(Object apiResponse) {
         return ((List<?>) apiResponse).stream().map(order -> {
             try {

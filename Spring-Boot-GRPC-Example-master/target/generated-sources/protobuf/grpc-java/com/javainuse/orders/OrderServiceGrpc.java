@@ -91,6 +91,38 @@ public final class OrderServiceGrpc {
      return getGetOrdersMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<com.javainuse.orders.UpdateOrderStatusRequest,
+      com.google.protobuf.Empty> getUpdateOrderStatusMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "updateOrderStatus",
+      requestType = com.javainuse.orders.UpdateOrderStatusRequest.class,
+      responseType = com.google.protobuf.Empty.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<com.javainuse.orders.UpdateOrderStatusRequest,
+      com.google.protobuf.Empty> getUpdateOrderStatusMethod() {
+    io.grpc.MethodDescriptor<com.javainuse.orders.UpdateOrderStatusRequest, com.google.protobuf.Empty> getUpdateOrderStatusMethod;
+    if ((getUpdateOrderStatusMethod = OrderServiceGrpc.getUpdateOrderStatusMethod) == null) {
+      synchronized (OrderServiceGrpc.class) {
+        if ((getUpdateOrderStatusMethod = OrderServiceGrpc.getUpdateOrderStatusMethod) == null) {
+          OrderServiceGrpc.getUpdateOrderStatusMethod = getUpdateOrderStatusMethod = 
+              io.grpc.MethodDescriptor.<com.javainuse.orders.UpdateOrderStatusRequest, com.google.protobuf.Empty>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(
+                  "orders.OrderService", "updateOrderStatus"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  com.javainuse.orders.UpdateOrderStatusRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  com.google.protobuf.Empty.getDefaultInstance()))
+                  .setSchemaDescriptor(new OrderServiceMethodDescriptorSupplier("updateOrderStatus"))
+                  .build();
+          }
+        }
+     }
+     return getUpdateOrderStatusMethod;
+  }
+
   /**
    * Creates a new async stub that supports all call types for the service
    */
@@ -132,6 +164,16 @@ public final class OrderServiceGrpc {
       asyncUnimplementedUnaryCall(getGetOrdersMethod(), responseObserver);
     }
 
+    /**
+     * <pre>
+     * New RPC
+     * </pre>
+     */
+    public void updateOrderStatus(com.javainuse.orders.UpdateOrderStatusRequest request,
+        io.grpc.stub.StreamObserver<com.google.protobuf.Empty> responseObserver) {
+      asyncUnimplementedUnaryCall(getUpdateOrderStatusMethod(), responseObserver);
+    }
+
     @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
       return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
           .addMethod(
@@ -148,6 +190,13 @@ public final class OrderServiceGrpc {
                 com.javainuse.orders.Status,
                 com.javainuse.orders.OrderList>(
                   this, METHODID_GET_ORDERS)))
+          .addMethod(
+            getUpdateOrderStatusMethod(),
+            asyncUnaryCall(
+              new MethodHandlers<
+                com.javainuse.orders.UpdateOrderStatusRequest,
+                com.google.protobuf.Empty>(
+                  this, METHODID_UPDATE_ORDER_STATUS)))
           .build();
     }
   }
@@ -185,6 +234,17 @@ public final class OrderServiceGrpc {
       asyncUnaryCall(
           getChannel().newCall(getGetOrdersMethod(), getCallOptions()), request, responseObserver);
     }
+
+    /**
+     * <pre>
+     * New RPC
+     * </pre>
+     */
+    public void updateOrderStatus(com.javainuse.orders.UpdateOrderStatusRequest request,
+        io.grpc.stub.StreamObserver<com.google.protobuf.Empty> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(getUpdateOrderStatusMethod(), getCallOptions()), request, responseObserver);
+    }
   }
 
   /**
@@ -217,6 +277,16 @@ public final class OrderServiceGrpc {
     public com.javainuse.orders.OrderList getOrders(com.javainuse.orders.Status request) {
       return blockingUnaryCall(
           getChannel(), getGetOrdersMethod(), getCallOptions(), request);
+    }
+
+    /**
+     * <pre>
+     * New RPC
+     * </pre>
+     */
+    public com.google.protobuf.Empty updateOrderStatus(com.javainuse.orders.UpdateOrderStatusRequest request) {
+      return blockingUnaryCall(
+          getChannel(), getUpdateOrderStatusMethod(), getCallOptions(), request);
     }
   }
 
@@ -253,10 +323,22 @@ public final class OrderServiceGrpc {
       return futureUnaryCall(
           getChannel().newCall(getGetOrdersMethod(), getCallOptions()), request);
     }
+
+    /**
+     * <pre>
+     * New RPC
+     * </pre>
+     */
+    public com.google.common.util.concurrent.ListenableFuture<com.google.protobuf.Empty> updateOrderStatus(
+        com.javainuse.orders.UpdateOrderStatusRequest request) {
+      return futureUnaryCall(
+          getChannel().newCall(getUpdateOrderStatusMethod(), getCallOptions()), request);
+    }
   }
 
   private static final int METHODID_CREATE_ORDER = 0;
   private static final int METHODID_GET_ORDERS = 1;
+  private static final int METHODID_UPDATE_ORDER_STATUS = 2;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -282,6 +364,10 @@ public final class OrderServiceGrpc {
         case METHODID_GET_ORDERS:
           serviceImpl.getOrders((com.javainuse.orders.Status) request,
               (io.grpc.stub.StreamObserver<com.javainuse.orders.OrderList>) responseObserver);
+          break;
+        case METHODID_UPDATE_ORDER_STATUS:
+          serviceImpl.updateOrderStatus((com.javainuse.orders.UpdateOrderStatusRequest) request,
+              (io.grpc.stub.StreamObserver<com.google.protobuf.Empty>) responseObserver);
           break;
         default:
           throw new AssertionError();
@@ -346,6 +432,7 @@ public final class OrderServiceGrpc {
               .setSchemaDescriptor(new OrderServiceFileDescriptorSupplier())
               .addMethod(getCreateOrderMethod())
               .addMethod(getGetOrdersMethod())
+              .addMethod(getUpdateOrderStatusMethod())
               .build();
         }
       }

@@ -153,7 +153,7 @@ namespace SEP3_T3_ASP_Core_WebAPI.Controllers
 
         [HttpPut("{orderId}/status")]
         [Authorize(Roles = Roles.WAREHOUSE_WORKER)] // Ensure only warehouse workers can access
-        public async Task<ActionResult> UpdateOrderStatus(int orderId, [FromBody] UpdateOrderStatusDTO updateStatusDTO)
+        public async Task<ActionResult> UpdateOrderStatus(int orderId, [FromBody] OrderStatus NewStatus)
         {
             try
             {
@@ -178,11 +178,6 @@ namespace SEP3_T3_ASP_Core_WebAPI.Controllers
                     return Forbid("You are not authorized to update the status of this order.");
                 }
 
-                // Update the order status
-                if (!Enum.TryParse<OrderStatus>(updateStatusDTO.NewStatus, true, out var newStatus))
-                {
-                    return BadRequest($"Invalid order status: {updateStatusDTO.NewStatus}");
-                }
 
                 // Validate allowed status transitions
                 if (order.OrderStatus == OrderStatus.COMPLETED)
@@ -190,8 +185,8 @@ namespace SEP3_T3_ASP_Core_WebAPI.Controllers
                     return BadRequest("Completed orders cannot be updated.");
                 }
 
-                order.OrderStatus = newStatus;
-                if (newStatus == OrderStatus.COMPLETED)
+                order.OrderStatus = NewStatus;
+                if (NewStatus == OrderStatus.COMPLETED)
                 {
                     order.CompletedAt = DateTimeOffset.UtcNow;
                 }

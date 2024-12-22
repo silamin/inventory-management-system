@@ -22,16 +22,6 @@ namespace Entities.DTOs
         public List<CreateOrderItemDTO> OrderItems { get; set; } // Corrected from CreateOrderDTO to CreateOrderItemDTO
         public int CreatedBy { get; set; }
     }
-    public class UpdateOrderStatusDTO
-    {
-        public int orderId { get; set; }
-        public string NewStatus { get; set; } = string.Empty;
-    }
-    public class UpdateOrderItemDTO
-    {
-        public int orderItemId { get; set; }
-        public int QuantityToPick { get; set; } // Quantity of the item in the order
-    }
 
     public class OrderItemDTO
     {

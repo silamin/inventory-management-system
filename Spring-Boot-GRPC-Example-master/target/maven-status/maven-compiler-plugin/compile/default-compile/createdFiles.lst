@@ -1,8 +1,11 @@
 com\javainuse\orders\StatusOrBuilder.class
+com\javainuse\orders\UpdateOrderStatusRequest$Builder.class
 com\javainuse\user\Role$Builder.class
 com\javainuse\user\DeleteUser$1.class
 com\javainuse\orders\Status$Builder.class
 com\javainuse\user\DeleteUserOrBuilder.class
+com\javainuse\orders\UpdateOrderStatusRequest.class
+com\javainuse\orders\UpdateOrderStatusRequest$1.class
 com\javainuse\orders\Status.class
 com\javainuse\sep03\service\AuthInterceptor.class
 com\javainuse\orders\Status$1.class
@@ -12,6 +15,7 @@ com\javainuse\user\GetUserOrBuilder.class
 com\javainuse\user\CreateUserOrBuilder.class
 com\javainuse\user\DeleteUser.class
 com\javainuse\user\GetUser$1.class
+com\javainuse\orders\UpdateOrderStatusRequestOrBuilder.class
 com\javainuse\user\Role.class
 com\javainuse\user\Role$1.class
 com\javainuse\user\RoleOrBuilder.class

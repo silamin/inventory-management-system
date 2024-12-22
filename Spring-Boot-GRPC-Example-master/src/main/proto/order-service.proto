@@ -12,6 +12,7 @@ option java_package = "com.javainuse.orders";
 service OrderService {
   rpc createOrder(CreateOrder) returns (CreateOrderResponse);
   rpc getOrders(Status) returns (OrderList);
+  rpc updateOrderStatus(UpdateOrderStatusRequest) returns (google.protobuf.Empty); // New RPC
 }
 
 message Status {
@@ -42,6 +43,10 @@ message Order {
   OrderStatus order_status = 6;
   google.protobuf.Timestamp delivery_date = 7;
   google.protobuf.Timestamp completed_at = 8;
+}
+message UpdateOrderStatusRequest {
+  int32 order_id = 1;
+  OrderStatus new_status = 2;
 }
 
 message GetOrderItem {

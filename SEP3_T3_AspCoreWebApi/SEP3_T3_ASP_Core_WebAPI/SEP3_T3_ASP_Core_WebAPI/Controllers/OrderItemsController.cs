@@ -23,7 +23,7 @@ public class OrderItemsController: ControllerBase
     // ********** UPDATE Endpoints **********
     // PUT: /OrderItems/{id}
     [HttpPut("{id}")]
-    public async Task<ActionResult> UpdateOrderItem([FromRoute] int id, [FromBody] UpdateOrderItemDTO updateDto)
+    public async Task<ActionResult> UpdateOrderItem([FromRoute] int id, [FromBody] int QuantityToPick)
     {
         try
         {
@@ -35,12 +35,12 @@ public class OrderItemsController: ControllerBase
             }
 
             // Update the pick quantity
-            if (updateDto.QuantityToPick > orderItem.TotalQuantity || updateDto.QuantityToPick < 0)
+            if (QuantityToPick > orderItem.TotalQuantity || QuantityToPick < 0)
             {
                 return BadRequest("QuantityToPick cannot be greater than TotalQuantity or less than 0.");
             }
 
-            orderItem.QuantityToPick = updateDto.QuantityToPick;
+            orderItem.QuantityToPick = QuantityToPick;
 
             // Save the updated order item
             await orderItemRepository.UpdateOrderItemAsync(orderItem);
