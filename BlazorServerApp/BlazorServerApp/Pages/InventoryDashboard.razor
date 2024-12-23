@@ -12,14 +12,6 @@
 <h1>Inventory Dashboard</h1>
 <p>Welcome to your inventory management system.</p>
 
-<!-- Add Item Button (top-right) -->
-<div class="d-flex justify-content-between mb-2">
-    <div></div>
-    <button class="btn btn-primary" @onclick="() => ShowAddItemModal = true">
-        <i class="fas fa-plus"></i> Add Item
-    </button>
-</div>
-
 @if (Manager.IsLoading)
 {
     <div class="text-center my-4">
@@ -114,6 +106,15 @@ else
                     </td>
                 </tr>
             }
+            <!-- Last row with "Add Item" button -->
+            <tr>
+                <!-- Adjust 'colspan' if you ever add or remove columns -->
+                <td colspan="7" class="text-center bg-light p-3">
+                    <button class="btn btn-primary px-4 py-2" @onclick="() => ShowAddItemModal = true">
+                        <i class="fas fa-plus"></i> Add Item
+                    </button>
+                </td>
+            </tr>
         </tbody>
     </table>
 
@@ -147,10 +148,7 @@ else
     </div>
 }
 
-<!--
-    Modal for Adding a New Item
-    We'll only show it if ShowAddItemModal == true
--->
+<!-- Modal for Adding a New Item (unchanged) -->
 @if (ShowAddItemModal)
 {
     <div class="modal fade show" style="display:block;" aria-modal="true" role="dialog">
@@ -214,7 +212,6 @@ else
         </div>
     </div>
 
-    <!-- Dark background overlay for modal -->
     <div class="modal-backdrop fade show"></div>
 }
 
