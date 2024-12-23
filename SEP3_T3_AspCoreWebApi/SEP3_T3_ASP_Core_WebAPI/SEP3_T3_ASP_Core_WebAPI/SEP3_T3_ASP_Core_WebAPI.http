@@ -1,6 +1,0 @@
-@SEP3_T3_ASP_Core_WebAPI_HostAddress = http://localhost:5203
-
-GET {{SEP3_T3_ASP_Core_WebAPI_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
