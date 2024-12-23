@@ -134,11 +134,11 @@ else
             </table>
 
             <!-- Pagination -->
-            <div class='d-flex justify-content-between align-items-center mt-2'>
+            <div class="d-flex justify-content-between align-items-center mt-3 mb-3">
                 <button class='btn btn-outline-secondary'
                         @onclick='Manager.PrevUnassignedPage'
                         disabled='@(Manager.UnassignedCurrentPage == 1)'>
-                    Previous
+                    <i class="fas fa-arrow-left"></i> Previous
                 </button>
                 <span>
                     Page @Manager.UnassignedCurrentPage
@@ -147,7 +147,7 @@ else
                 <button class='btn btn-outline-secondary'
                         @onclick='Manager.NextUnassignedPage'
                         disabled='@(Manager.UnassignedCurrentPage == Manager.UnassignedTotalPages)'>
-                    Next
+                    Next <i class="fas fa-arrow-right"></i>
                 </button>
             </div>
         }
@@ -269,11 +269,11 @@ else
             </table>
 
             <!-- Pagination -->
-            <div class='d-flex justify-content-between align-items-center mt-2'>
+            <div class="d-flex justify-content-between align-items-center mt-3 mb-3">
                 <button class='btn btn-outline-secondary'
                         @onclick='Manager.PrevAssignedPage'
                         disabled='@(Manager.AssignedCurrentPage == 1)'>
-                    Previous
+                    <i class="fas fa-arrow-left"></i> Previous
                 </button>
                 <span>
                     Page @Manager.AssignedCurrentPage
@@ -282,7 +282,7 @@ else
                 <button class='btn btn-outline-secondary'
                         @onclick='Manager.NextAssignedPage'
                         disabled='@(Manager.AssignedCurrentPage == Manager.AssignedTotalPages)'>
-                    Next
+                    Next <i class="fas fa-arrow-right"></i>
                 </button>
             </div>
         }
@@ -372,11 +372,11 @@ else
             </table>
 
             <!-- Pagination -->
-            <div class='d-flex justify-content-between align-items-center mt-2'>
+            <div class="d-flex justify-content-between align-items-center mt-3 mb-3">
                 <button class='btn btn-outline-secondary'
                         @onclick='Manager.PrevCompletedPage'
                         disabled='@(Manager.CompletedCurrentPage == 1)'>
-                    Previous
+                    <i class="fas fa-arrow-left"></i> Previous
                 </button>
                 <span>
                     Page @Manager.CompletedCurrentPage
@@ -385,7 +385,7 @@ else
                 <button class='btn btn-outline-secondary'
                         @onclick='Manager.NextCompletedPage'
                         disabled='@(Manager.CompletedCurrentPage == Manager.CompletedTotalPages)'>
-                    Next
+                    Next <i class="fas fa-arrow-right"></i>
                 </button>
             </div>
         }
