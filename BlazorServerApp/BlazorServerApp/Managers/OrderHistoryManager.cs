@@ -106,6 +106,8 @@ public class OrderHistoryManager
             "DeliveryDate" => Ascending ? orders.OrderBy(o => o.DeliveryDate) : orders.OrderByDescending(o => o.DeliveryDate),
             "AssignedUser" => Ascending ? orders.OrderBy(o => o.AssignedUser) : orders.OrderByDescending(o => o.AssignedUser),
             "CreatedBy" => Ascending ? orders.OrderBy(o => o.CreatedByUser) : orders.OrderByDescending(o => o.CreatedByUser),
+            "CompletedAt" => Ascending ? orders.OrderBy(o => o.CompletedAt) : orders.OrderByDescending(o => o.CompletedAt),
+
             _ => orders
         };
     }
