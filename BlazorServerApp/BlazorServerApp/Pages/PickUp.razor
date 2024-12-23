@@ -34,11 +34,11 @@ else
                 @onclick='() => Manager.ChangeViewAsync("Unassigned")'>
             Unassigned Orders
         </button>
-        <button class='btn @(Manager.ActiveView == "Assigned" ? "btn-success" : "btn-outline-success") flex-fill mx-2'
+        <button class='btn @(Manager.ActiveView == "Assigned" ? "btn-primary" : "btn-outline-primary") flex-fill mx-2'
                 @onclick='() => Manager.ChangeViewAsync("Assigned")'>
             Assigned Orders
         </button>
-        <button class='btn @(Manager.ActiveView == "Completed" ? "btn-secondary" : "btn-outline-secondary") flex-fill ms-2'
+        <button class='btn @(Manager.ActiveView == "Completed" ? "btn-success" : "btn-outline-success") flex-fill ms-2'
                 @onclick='() => Manager.ChangeViewAsync("Completed")'>
             Completed Orders
         </button>
@@ -50,11 +50,18 @@ else
         <h3 class='mt-4 text-danger'>Unassigned Orders</h3>
 
         <!-- Search box for Unassigned orders -->
-        <div class="mb-3">
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text h-100 w-100">
+                    <i class="fas fa-search"></i>
+                </span>
+            </div>
             <input type="text" class="form-control"
                    placeholder="Search by Order ID..."
                    @bind="Manager.UnassignedSearchTerm"
                    @bind:event="oninput" />
+            <button class="btn btn-outline-secondary" type="button">Clear</button>
         </div>
 
         @if (!Manager.UnassignedOrders.Any())
@@ -148,14 +155,22 @@ else
     @* ---------------- ASSIGNED ORDERS ---------------- *@
     else if (Manager.ActiveView == "Assigned")
     {
-        <h3 class='mt-4 text-success'>Assigned Orders</h3>
+        <h3 class='mt-4 text-primary'>Assigned Orders</h3>
 
         <!-- Search box for Assigned orders -->
-        <div class="mb-3">
+
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text h-100 w-100">
+                    <i class="fas fa-search"></i>
+                </span>
+            </div>
             <input type="text" class="form-control"
                    placeholder="Search by Order ID..."
                    @bind="Manager.AssignedSearchTerm"
                    @bind:event="oninput" />
+            <button class="btn btn-outline-secondary" type="button">Clear</button>
         </div>
 
         @if (!Manager.AssignedOrders.Any())
@@ -165,7 +180,7 @@ else
         else
         {
             <table class='table table-bordered table-hover'>
-                <thead class='table-success'>
+                <thead class='table-primary'>
                     <tr>
                         <th class='text-center' style='cursor: pointer'
                             @onclick='() => Manager.SortAssigned(SortColumn.OrderId)'>
@@ -275,14 +290,20 @@ else
     @* ---------------- COMPLETED ORDERS --------------- *@
     else if (Manager.ActiveView == "Completed")
     {
-        <h3 class='mt-4 text-secondary'>Completed Orders</h3>
+        <h3 class='mt-4 text-success'>Completed Orders</h3>
 
         <!-- Search box for Completed orders -->
-        <div class="mb-3">
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text h-100 w-100">
+                    <i class="fas fa-search"></i>
+                </span>
+            </div>
             <input type="text" class="form-control"
                    placeholder="Search by Order ID..."
                    @bind="Manager.CompletedSearchTerm"
                    @bind:event="oninput" />
+            <button class="btn btn-outline-secondary" type="button">Clear</button>
         </div>
 
         @if (!Manager.CompletedOrders.Any())
@@ -292,7 +313,7 @@ else
         else
         {
             <table class='table table-bordered table-hover'>
-                <thead class='table-secondary'>
+                <thead class='table-success'>
                     <tr>
                         <th class='text-center' style='cursor: pointer'
                             @onclick='() => Manager.SortCompleted(SortColumn.OrderId)'>
