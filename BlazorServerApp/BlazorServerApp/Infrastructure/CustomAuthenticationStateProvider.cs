@@ -6,18 +6,21 @@ public class CustomAuthenticationStateProvider : AuthenticationStateProvider
 {
     private ClaimsPrincipal _anonymous = new ClaimsPrincipal(new ClaimsIdentity());
     private readonly ProtectedSessionStorage _protectedSessionStore;
-    private string _cachedToken = null; // Cache the token after first successful fetch
-    private bool _isInitialized = false; // Check if the storage has been initialized
+    private string? _cachedToken;
 
     public CustomAuthenticationStateProvider(ProtectedSessionStorage protectedSessionStore)
     {
         _protectedSessionStore = protectedSessionStore;
-        InitializeAsync(); // Call InitializeAsync during construction
     }
 
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
-        if (_isInitialized && !string.IsNullOrEmpty(_cachedToken))
+        if (_cachedToken == null)
+        {
+            _cachedToken = await GetTokenAsync();
+        }
+
+        if (!string.IsNullOrEmpty(_cachedToken))
         {
             var identity = new ClaimsIdentity(ParseClaimsFromJwt(_cachedToken), "jwt");
             var user = new ClaimsPrincipal(identity);
@@ -27,13 +30,10 @@ public class CustomAuthenticationStateProvider : AuthenticationStateProvider
         return new AuthenticationState(_anonymous);
     }
 
-    public async void MarkUserAsAuthenticated(string token)
+    public async Task MarkUserAsAuthenticated(string token)
     {
-        _cachedToken = token; // Cache the token to avoid unnecessary calls
-        if (_isInitialized)
-        {
-            await _protectedSessionStore.SetAsync("authToken", token);
-        }
+        _cachedToken = token;
+        await _protectedSessionStore.SetAsync("authToken", token);
 
         var identity = new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt");
         var user = new ClaimsPrincipal(identity);
@@ -42,27 +42,25 @@ public class CustomAuthenticationStateProvider : AuthenticationStateProvider
         NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(user)));
     }
 
-    public async void MarkUserAsLoggedOut()
+    public async Task MarkUserAsLoggedOut()
     {
-        _cachedToken = null; // Clear the token
-        if (_isInitialized)
-        {
-            await _protectedSessionStore.DeleteAsync("authToken");
-        }
+        _cachedToken = null;
+        await _protectedSessionStore.DeleteAsync("authToken");
 
         NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(_anonymous)));
     }
 
-    private async Task InitializeAsync()
+    public async Task<string?> GetTokenAsync()
     {
-        if (!_isInitialized)
+        try
         {
             var tokenResult = await _protectedSessionStore.GetAsync<string>("authToken");
-            _cachedToken = tokenResult.Value;
-            _isInitialized = true;
-
-            // Notify Blazor that the authentication state has changed
-            NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
+            return tokenResult.Success ? tokenResult.Value : null;
+        }
+        catch (InvalidOperationException)
+        {
+            // Log warning: JavaScript interop not available during prerendering.
+            return null;
         }
     }
 
@@ -77,36 +75,15 @@ public class CustomAuthenticationStateProvider : AuthenticationStateProvider
         {
             foreach (var kvp in keyValuePairs)
             {
-                // Map "role" claim to ClaimTypes.Role
                 var claimType = kvp.Key.Equals("role", StringComparison.OrdinalIgnoreCase)
                                 ? ClaimTypes.Role
                                 : kvp.Key;
-
                 claims.Add(new Claim(claimType, kvp.Value.ToString()));
             }
         }
 
-        // Debug: Log claims to verify role is parsed correctly
-        foreach (var claim in claims)
-        {
-            Console.WriteLine($"Claim Type: {claim.Type}, Value: {claim.Value}");
-        }
-
         return claims;
     }
-    public async Task<string?> GetTokenAsync()
-    {
-        if (string.IsNullOrEmpty(_cachedToken))
-        {
-            var tokenResult = await _protectedSessionStore.GetAsync<string>("authToken");
-            _cachedToken = tokenResult.Success ? tokenResult.Value : null;
-        }
-        Console.WriteLine("Stored Token: " + _cachedToken);
-
-
-        return _cachedToken;
-    }
-
 
     private string PadBase64(string base64)
     {

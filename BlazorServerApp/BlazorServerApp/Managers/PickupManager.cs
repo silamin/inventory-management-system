@@ -452,9 +452,9 @@ namespace BlazorServerApp.Managers
             _stateChangedCallback?.Invoke();
         }
 
-        public void Logout()
+        public async void Logout()
         {
-            ((CustomAuthenticationStateProvider)_authenticationStateProvider).MarkUserAsLoggedOut();
+            await((CustomAuthenticationStateProvider)_authenticationStateProvider).MarkUserAsLoggedOut();
             _navigationManager.NavigateTo("/login");
         }
 

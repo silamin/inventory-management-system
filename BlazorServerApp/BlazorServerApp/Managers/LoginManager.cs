@@ -45,7 +45,8 @@ public class LoginManager : INotifyPropertyChanged
             var token = await _authUseCases.Login(LoginRequest);
             if (!string.IsNullOrEmpty(token))
             {
-                ((CustomAuthenticationStateProvider)_authenticationStateProvider).MarkUserAsAuthenticated(token);
+                await((CustomAuthenticationStateProvider)_authenticationStateProvider).MarkUserAsAuthenticated(token);
+
                 return true;
             }
             else
@@ -116,9 +117,10 @@ public class LoginManager : INotifyPropertyChanged
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
-    public async Task LogoutAsync()
-    {
-        ((CustomAuthenticationStateProvider)_authenticationStateProvider).MarkUserAsLoggedOut();
-
+public async Task LogoutAsync()
+{
+    await ((CustomAuthenticationStateProvider)_authenticationStateProvider).MarkUserAsLoggedOut();
+    
     }
+
 }
