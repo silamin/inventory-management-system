@@ -33,6 +33,13 @@ namespace BlazorServerApp.Managers
         public List<Order> CompletedOrders { get; private set; } = new();
 
         // ------------------------------
+        // SEARCH TERMS
+        // ------------------------------
+        public string UnassignedSearchTerm { get; set; } = string.Empty;
+        public string AssignedSearchTerm { get; set; } = string.Empty;
+        public string CompletedSearchTerm { get; set; } = string.Empty;
+
+        // ------------------------------
         // PAGINATION
         // ------------------------------
         public int ItemsPerPage { get; private set; } = 5;
@@ -175,13 +182,23 @@ namespace BlazorServerApp.Managers
         }
 
         // ------------------------------
-        // PAGED + SORTED GETTERS
+        // PAGED + SORTED GETTERS (with SEARCH)
         // ------------------------------
         public IEnumerable<Order> GetPagedUnassignedOrders()
         {
-            // 1) Sort
-            var sorted = UnassignedOrders.OrderByColumn(_unassignedSortColumn, _unassignedSortAscending);
-            // 2) Page
+            // 1) Filter by search text
+            var query = UnassignedOrders.AsEnumerable();
+            if (!string.IsNullOrWhiteSpace(UnassignedSearchTerm))
+            {
+                // For "search by order ID", let’s do "contains" on the OrderId string
+                query = query.Where(o =>
+                    o.OrderId.ToString().Contains(UnassignedSearchTerm, StringComparison.OrdinalIgnoreCase));
+            }
+
+            // 2) Sort
+            var sorted = query.OrderByColumn(_unassignedSortColumn, _unassignedSortAscending);
+
+            // 3) Page
             return sorted
                 .Skip((_unassignedCurrentPage - 1) * ItemsPerPage)
                 .Take(ItemsPerPage);
@@ -189,7 +206,15 @@ namespace BlazorServerApp.Managers
 
         public IEnumerable<Order> GetPagedAssignedOrders()
         {
-            var sorted = AssignedOrders.OrderByColumn(_assignedSortColumn, _assignedSortAscending);
+            var query = AssignedOrders.AsEnumerable();
+            if (!string.IsNullOrWhiteSpace(AssignedSearchTerm))
+            {
+                query = query.Where(o =>
+                    o.OrderId.ToString().Contains(AssignedSearchTerm, StringComparison.OrdinalIgnoreCase));
+            }
+
+            var sorted = query.OrderByColumn(_assignedSortColumn, _assignedSortAscending);
+
             return sorted
                 .Skip((_assignedCurrentPage - 1) * ItemsPerPage)
                 .Take(ItemsPerPage);
@@ -197,7 +222,15 @@ namespace BlazorServerApp.Managers
 
         public IEnumerable<Order> GetPagedCompletedOrders()
         {
-            var sorted = CompletedOrders.OrderByColumn(_completedSortColumn, _completedSortAscending);
+            var query = CompletedOrders.AsEnumerable();
+            if (!string.IsNullOrWhiteSpace(CompletedSearchTerm))
+            {
+                query = query.Where(o =>
+                    o.OrderId.ToString().Contains(CompletedSearchTerm, StringComparison.OrdinalIgnoreCase));
+            }
+
+            var sorted = query.OrderByColumn(_completedSortColumn, _completedSortAscending);
+
             return sorted
                 .Skip((_completedCurrentPage - 1) * ItemsPerPage)
                 .Take(ItemsPerPage);
@@ -423,6 +456,33 @@ namespace BlazorServerApp.Managers
         {
             ((CustomAuthenticationStateProvider)_authenticationStateProvider).MarkUserAsLoggedOut();
             _navigationManager.NavigateTo("/login");
+        }
+
+        // ------------------------------
+        // SORT ICON HELPERS (unchanged)
+        // ------------------------------
+        public string GetUnassignedSortIcon(SortColumn column)
+        {
+            if (_unassignedSortColumn == column)
+                return _unassignedSortAscending ? "fas fa-sort-up" : "fas fa-sort-down";
+            else
+                return "fas fa-sort";
+        }
+
+        public string GetAssignedSortIcon(SortColumn column)
+        {
+            if (_assignedSortColumn == column)
+                return _assignedSortAscending ? "fas fa-sort-up" : "fas fa-sort-down";
+            else
+                return "fas fa-sort";
+        }
+
+        public string GetCompletedSortIcon(SortColumn column)
+        {
+            if (_completedSortColumn == column)
+                return _completedSortAscending ? "fas fa-sort-up" : "fas fa-sort-down";
+            else
+                return "fas fa-sort";
         }
     }
 }

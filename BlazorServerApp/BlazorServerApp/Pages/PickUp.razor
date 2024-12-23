@@ -48,6 +48,15 @@ else
     @if (Manager.ActiveView == "Unassigned")
     {
         <h3 class='mt-4 text-danger'>Unassigned Orders</h3>
+
+        <!-- Search box for Unassigned orders -->
+        <div class="mb-3">
+            <input type="text" class="form-control"
+                   placeholder="Search by Order ID..."
+                   @bind="Manager.UnassignedSearchTerm"
+                   @bind:event="oninput" />
+        </div>
+
         @if (!Manager.UnassignedOrders.Any())
         {
             <p class='text-center text-muted'>No unassigned orders available at the moment.</p>
@@ -60,14 +69,17 @@ else
                         <th class='text-center' style='cursor: pointer'
                             @onclick='() => Manager.SortUnassigned(SortColumn.OrderId)'>
                             Order ID
+                            <i class='@(Manager.GetUnassignedSortIcon(SortColumn.OrderId))'></i>
                         </th>
                         <th class='text-center' style='cursor: pointer'
                             @onclick='() => Manager.SortUnassigned(SortColumn.DeliveryDate)'>
                             Delivery Date
+                            <i class='@(Manager.GetUnassignedSortIcon(SortColumn.DeliveryDate))'></i>
                         </th>
                         <th class='text-center' style='cursor: pointer'
                             @onclick='() => Manager.SortUnassigned(SortColumn.CreatedAt)'>
                             Created At
+                            <i class='@(Manager.GetUnassignedSortIcon(SortColumn.CreatedAt))'></i>
                         </th>
                         <th class='text-center'>Actions</th>
                     </tr>
@@ -137,6 +149,15 @@ else
     else if (Manager.ActiveView == "Assigned")
     {
         <h3 class='mt-4 text-success'>Assigned Orders</h3>
+
+        <!-- Search box for Assigned orders -->
+        <div class="mb-3">
+            <input type="text" class="form-control"
+                   placeholder="Search by Order ID..."
+                   @bind="Manager.AssignedSearchTerm"
+                   @bind:event="oninput" />
+        </div>
+
         @if (!Manager.AssignedOrders.Any())
         {
             <p class='text-center text-muted'>You have no assigned orders at the moment.</p>
@@ -149,14 +170,17 @@ else
                         <th class='text-center' style='cursor: pointer'
                             @onclick='() => Manager.SortAssigned(SortColumn.OrderId)'>
                             Order ID
+                            <i class='@(Manager.GetAssignedSortIcon(SortColumn.OrderId))'></i>
                         </th>
                         <th class='text-center' style='cursor: pointer'
                             @onclick='() => Manager.SortAssigned(SortColumn.DeliveryDate)'>
                             Delivery Date
+                            <i class='@(Manager.GetAssignedSortIcon(SortColumn.DeliveryDate))'></i>
                         </th>
                         <th class='text-center' style='cursor: pointer'
                             @onclick='() => Manager.SortAssigned(SortColumn.CreatedAt)'>
                             Created At
+                            <i class='@(Manager.GetAssignedSortIcon(SortColumn.CreatedAt))'></i>
                         </th>
                         <th class='text-center'>Actions</th>
                     </tr>
@@ -252,6 +276,15 @@ else
     else if (Manager.ActiveView == "Completed")
     {
         <h3 class='mt-4 text-secondary'>Completed Orders</h3>
+
+        <!-- Search box for Completed orders -->
+        <div class="mb-3">
+            <input type="text" class="form-control"
+                   placeholder="Search by Order ID..."
+                   @bind="Manager.CompletedSearchTerm"
+                   @bind:event="oninput" />
+        </div>
+
         @if (!Manager.CompletedOrders.Any())
         {
             <p class='text-center text-muted'>No completed orders yet.</p>
@@ -264,14 +297,17 @@ else
                         <th class='text-center' style='cursor: pointer'
                             @onclick='() => Manager.SortCompleted(SortColumn.OrderId)'>
                             Order ID
+                            <i class='@(Manager.GetCompletedSortIcon(SortColumn.OrderId))'></i>
                         </th>
                         <th class='text-center' style='cursor: pointer'
                             @onclick='() => Manager.SortCompleted(SortColumn.DeliveryDate)'>
                             Delivery Date
+                            <i class='@(Manager.GetCompletedSortIcon(SortColumn.DeliveryDate))'></i>
                         </th>
                         <th class='text-center' style='cursor: pointer'
                             @onclick='() => Manager.SortCompleted(SortColumn.CreatedAt)'>
                             Created At
+                            <i class='@(Manager.GetCompletedSortIcon(SortColumn.CreatedAt))'></i>
                         </th>
                         <th class='text-center'>Actions</th>
                     </tr>
