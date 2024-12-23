@@ -1,90 +1,106 @@
 ﻿@page "/pick-up"
+
+@using Orders
+@using BlazorServerApp.Helpers
 @using BlazorServerApp.Managers
 
 @attribute [Authorize(Roles = "WAREHOUSE_WORKER")]
-@inject BlazorServerApp.Managers.PickupManager Manager
+@inject PickupManager Manager
 
 <PageTitle>Pick-Up Management</PageTitle>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="text-dark fw-bold">Pick-Up Management</h1>
-    <button class="btn btn-danger" @onclick="Manager.Logout">
-        <i class="fas fa-sign-out-alt"></i> Logout
+<div class='d-flex justify-content-between align-items-center mb-4'>
+    <h1 class='text-dark fw-bold'>Pick-Up Management</h1>
+    <button class='btn btn-danger' @onclick='Manager.Logout'>
+        <i class='fas fa-sign-out-alt'></i> Logout
     </button>
 </div>
 
-<p class="text-center text-muted">Manage orders and items for pick-up efficiently.</p>
+<p class='text-center text-muted'>Manage orders and items for pick-up efficiently.</p>
 
-@if (Manager?.IsLoading ?? true)
+@if (Manager.IsLoading)
 {
-    <div class="text-center my-4">
-        <div class="spinner-border" role="status">
-            <span class="visually-hidden">Loading...</span>
+    <div class='text-center my-4'>
+        <div class='spinner-border' role='status'>
+            <span class='visually-hidden'>Loading...</span>
         </div>
         <p>Loading orders, please wait...</p>
     </div>
 }
 else
 {
-    <div class="d-flex w-100 mb-4">
-        <button class="btn @(Manager.ActiveView == "Unassigned" ? "btn-danger" : "btn-outline-danger") flex-fill me-2"
+    <div class='d-flex w-100 mb-4'>
+        <button class='btn @(Manager.ActiveView == "Unassigned" ? "btn-danger" : "btn-outline-danger") flex-fill me-2'
                 @onclick='() => Manager.ChangeViewAsync("Unassigned")'>
             Unassigned Orders
         </button>
-        <button class="btn @(Manager.ActiveView == "Assigned" ? "btn-success" : "btn-outline-success") flex-fill mx-2"
+        <button class='btn @(Manager.ActiveView == "Assigned" ? "btn-success" : "btn-outline-success") flex-fill mx-2'
                 @onclick='() => Manager.ChangeViewAsync("Assigned")'>
             Assigned Orders
         </button>
-        <button class="btn @(Manager.ActiveView == "Completed" ? "btn-secondary" : "btn-outline-secondary") flex-fill ms-2"
+        <button class='btn @(Manager.ActiveView == "Completed" ? "btn-secondary" : "btn-outline-secondary") flex-fill ms-2'
                 @onclick='() => Manager.ChangeViewAsync("Completed")'>
             Completed Orders
         </button>
     </div>
 
+    @* ---------------- UNASSIGNED ORDERS --------------- *@
     @if (Manager.ActiveView == "Unassigned")
     {
-        <h3 class="mt-4 text-danger">Unassigned Orders</h3>
+        <h3 class='mt-4 text-danger'>Unassigned Orders</h3>
         @if (!Manager.UnassignedOrders.Any())
         {
-            <div class="text-center mt-4">
-                <p class="text-muted">No unassigned orders available at the moment.</p>
-            </div>
+            <p class='text-center text-muted'>No unassigned orders available at the moment.</p>
         }
         else
         {
-            <table class="table table-bordered table-hover">
-                <thead class="table-danger">
+            <table class='table table-bordered table-hover'>
+                <thead class='table-danger'>
                     <tr>
-                        <th class="text-center">Order ID</th>
-                        <th class="text-center">Delivery Date</th>
-                        <th class="text-center">Actions</th>
+                        <th class='text-center' style='cursor: pointer'
+                            @onclick='() => Manager.SortUnassigned(SortColumn.OrderId)'>
+                            Order ID
+                        </th>
+                        <th class='text-center' style='cursor: pointer'
+                            @onclick='() => Manager.SortUnassigned(SortColumn.DeliveryDate)'>
+                            Delivery Date
+                        </th>
+                        <th class='text-center' style='cursor: pointer'
+                            @onclick='() => Manager.SortUnassigned(SortColumn.CreatedAt)'>
+                            Created At
+                        </th>
+                        <th class='text-center'>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var order in Manager.UnassignedOrders)
+                    @foreach (var order in Manager.GetPagedUnassignedOrders())
                     {
                         <tr>
-                            <td class="text-center">@order.OrderId</td>
-                            <td class="text-center">@Manager.FormatTimestamp(order.DeliveryDate)</td>
-                            <td class="text-center">
-                                <button class="btn btn-primary btn-sm me-2"
+                            <td class='text-center'>@order.OrderId</td>
+                            <td class='text-center'>@Manager.FormatTimestamp(order.DeliveryDate)</td>
+                            <td class='text-center'>@Manager.FormatTimestamp(order.CreatedAt)</td>
+                            <td class='text-center'>
+                                <button class='btn btn-primary btn-sm me-2'
                                         @onclick='() => Manager.ToggleOrderDetails(order.OrderId, "Unassigned")'>
                                     View Items
                                 </button>
-                                <button class="btn btn-success btn-sm" @onclick="() => Manager.AssignOrderAsync(order)">Assign to Me</button>
+                                <button class='btn btn-success btn-sm'
+                                        @onclick='() => Manager.AssignOrderAsync(order)'>
+                                    Assign to Me
+                                </button>
                             </td>
                         </tr>
                         @if (Manager.SelectedOrder?.OrderId == order.OrderId && Manager.ViewingUnassignedDetails)
                         {
                             <tr>
-                                <td colspan="3">
-                                    <div class="d-flex flex-wrap">
+                                <td colspan='4'>
+                                    <div class='d-flex flex-wrap'>
                                         @foreach (var item in Manager.SelectedOrder.OrderItems)
                                         {
-                                            <div class="card m-2" style="width: 18rem;">
-                                                <div class="card-body">
-                                                    <h5 class="card-title">@item.ItemName</h5>
-                                                    <p class="card-text">
+                                            <div class='card m-2' style='width: 18rem;'>
+                                                <div class='card-body'>
+                                                    <h5 class='card-title'>@item.ItemName</h5>
+                                                    <p class='card-text'>
                                                         <strong>Total Quantity:</strong> @item.TotalQuantity
                                                     </p>
                                                 </div>
@@ -97,37 +113,64 @@ else
                     }
                 </tbody>
             </table>
+
+            <!-- Pagination -->
+            <div class='d-flex justify-content-between align-items-center mt-2'>
+                <button class='btn btn-outline-secondary'
+                        @onclick='Manager.PrevUnassignedPage'
+                        disabled='@(Manager.UnassignedCurrentPage == 1)'>
+                    Previous
+                </button>
+                <span>
+                    Page @Manager.UnassignedCurrentPage
+                    of @Manager.UnassignedTotalPages
+                </span>
+                <button class='btn btn-outline-secondary'
+                        @onclick='Manager.NextUnassignedPage'
+                        disabled='@(Manager.UnassignedCurrentPage == Manager.UnassignedTotalPages)'>
+                    Next
+                </button>
+            </div>
         }
     }
+    @* ---------------- ASSIGNED ORDERS ---------------- *@
     else if (Manager.ActiveView == "Assigned")
     {
-        <h3 class="mt-4 text-success">Assigned Orders</h3>
+        <h3 class='mt-4 text-success'>Assigned Orders</h3>
         @if (!Manager.AssignedOrders.Any())
         {
-            <div class="text-center mt-4">
-                <p class="text-muted">You have no assigned orders at the moment.</p>
-            </div>
+            <p class='text-center text-muted'>You have no assigned orders at the moment.</p>
         }
         else
         {
-            <table class="table table-bordered table-hover">
-                <thead class="table-success">
+            <table class='table table-bordered table-hover'>
+                <thead class='table-success'>
                     <tr>
-                        <th class="text-center">Order ID</th>
-                        <th class="text-center">Delivery Date</th>
-                        <th class="text-center">Created At</th>
-                        <th class="text-center">Actions</th>
+                        <th class='text-center' style='cursor: pointer'
+                            @onclick='() => Manager.SortAssigned(SortColumn.OrderId)'>
+                            Order ID
+                        </th>
+                        <th class='text-center' style='cursor: pointer'
+                            @onclick='() => Manager.SortAssigned(SortColumn.DeliveryDate)'>
+                            Delivery Date
+                        </th>
+                        <th class='text-center' style='cursor: pointer'
+                            @onclick='() => Manager.SortAssigned(SortColumn.CreatedAt)'>
+                            Created At
+                        </th>
+                        <th class='text-center'>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var order in Manager.AssignedOrders)
+                    @foreach (var order in Manager.GetPagedAssignedOrders())
                     {
                         <tr>
-                            <td class="text-center">@order.OrderId</td>
-                            <td class="text-center">@Manager.FormatTimestamp(order.DeliveryDate)</td>
-                            <td class="text-center">@Manager.FormatTimestamp(order.CreatedAt)</td>
-                            <td class="text-center">
-                                <button class="btn btn-primary btn-sm" @onclick='() => Manager.ToggleOrderDetails(order.OrderId, "Assigned")'>
+                            <td class='text-center'>@order.OrderId</td>
+                            <td class='text-center'>@Manager.FormatTimestamp(order.DeliveryDate)</td>
+                            <td class='text-center'>@Manager.FormatTimestamp(order.CreatedAt)</td>
+                            <td class='text-center'>
+                                <button class='btn btn-primary btn-sm'
+                                        @onclick='() => Manager.ToggleOrderDetails(order.OrderId, "Assigned")'>
                                     View Details
                                 </button>
                             </td>
@@ -136,16 +179,16 @@ else
                         @if (Manager.SelectedOrder?.OrderId == order.OrderId && !Manager.ViewingUnassignedDetails)
                         {
                             <tr>
-                                <td colspan="4">
-                                    <div class="mt-2">
+                                <td colspan='4'>
+                                    <div class='mt-2'>
                                         <h5>Order Details</h5>
-                                        <table class="table table-sm table-bordered mt-2">
+                                        <table class='table table-sm table-bordered mt-2'>
                                             <thead>
-                                                <tr class="table-light">
+                                                <tr class='table-light'>
                                                     <th>Item Name</th>
-                                                    <th class="text-center">Quantity to Pick</th>
-                                                    <th class="text-center">Picked</th>
-                                                    <th class="text-center">Actions</th>
+                                                    <th class='text-center'>Quantity to Pick</th>
+                                                    <th class='text-center'>Picked</th>
+                                                    <th class='text-center'>Actions</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -153,18 +196,30 @@ else
                                                 {
                                                     <tr>
                                                         <td>@item.ItemName</td>
-                                                        <td class="text-center">@item.QuantityToPick</td>
-                                                        <td class="text-center">@(@item.TotalQuantity - @item.QuantityToPick)</td>
-                                                        <td class="text-center">
-                                                            <button class="btn btn-success btn-sm" @onclick="() => Manager.PickupItemAsync(item)" disabled="@(item.QuantityToPick == 0)">Pick up item</button>
-                                                            <button class="btn btn-warning btn-sm" @onclick="() => Manager.RevertPickupItemAsync(item)" disabled="@(item.QuantityToPick == item.TotalQuantity)">Revert</button>
+                                                        <td class='text-center'>@item.QuantityToPick</td>
+                                                        <td class='text-center'>@(@item.TotalQuantity - @item.QuantityToPick)</td>
+                                                        <td class='text-center'>
+                                                            <button class='btn btn-success btn-sm'
+                                                                    @onclick='() => Manager.PickupItemAsync(item)'
+                                                                    disabled='@(item.QuantityToPick == 0)'>
+                                                                Pick up item
+                                                            </button>
+                                                            <button class='btn btn-warning btn-sm'
+                                                                    @onclick='() => Manager.RevertPickupItemAsync(item)'
+                                                                    disabled='@(item.QuantityToPick == item.TotalQuantity)'>
+                                                                Revert
+                                                            </button>
                                                         </td>
                                                     </tr>
                                                 }
                                             </tbody>
                                         </table>
-                                        <div class="text-center mt-4">
-                                            <button class="btn btn-success" @onclick="Manager.CompleteOrderAsync" disabled="@(!Manager.CanCompleteOrder())">Complete Order</button>
+                                        <div class='text-center mt-4'>
+                                            <button class='btn btn-success'
+                                                    @onclick='Manager.CompleteOrderAsync'
+                                                    disabled='@(!Manager.CanCompleteOrder())'>
+                                                Complete Order
+                                            </button>
                                         </div>
                                     </div>
                                 </td>
@@ -173,37 +228,63 @@ else
                     }
                 </tbody>
             </table>
+
+            <!-- Pagination -->
+            <div class='d-flex justify-content-between align-items-center mt-2'>
+                <button class='btn btn-outline-secondary'
+                        @onclick='Manager.PrevAssignedPage'
+                        disabled='@(Manager.AssignedCurrentPage == 1)'>
+                    Previous
+                </button>
+                <span>
+                    Page @Manager.AssignedCurrentPage
+                    of @Manager.AssignedTotalPages
+                </span>
+                <button class='btn btn-outline-secondary'
+                        @onclick='Manager.NextAssignedPage'
+                        disabled='@(Manager.AssignedCurrentPage == Manager.AssignedTotalPages)'>
+                    Next
+                </button>
+            </div>
         }
     }
+    @* ---------------- COMPLETED ORDERS --------------- *@
     else if (Manager.ActiveView == "Completed")
     {
-        <h3 class="mt-4 text-secondary">Completed Orders</h3>
+        <h3 class='mt-4 text-secondary'>Completed Orders</h3>
         @if (!Manager.CompletedOrders.Any())
         {
-            <div class="text-center mt-4">
-                <p class="text-muted">No completed orders yet.</p>
-            </div>
+            <p class='text-center text-muted'>No completed orders yet.</p>
         }
         else
         {
-            <table class="table table-bordered table-hover">
-                <thead class="table-secondary">
+            <table class='table table-bordered table-hover'>
+                <thead class='table-secondary'>
                     <tr>
-                        <th class="text-center">Order ID</th>
-                        <th class="text-center">Delivery Date</th>
-                        <th class="text-center">Completion Date</th>
-                        <th class="text-center">Actions</th>
+                        <th class='text-center' style='cursor: pointer'
+                            @onclick='() => Manager.SortCompleted(SortColumn.OrderId)'>
+                            Order ID
+                        </th>
+                        <th class='text-center' style='cursor: pointer'
+                            @onclick='() => Manager.SortCompleted(SortColumn.DeliveryDate)'>
+                            Delivery Date
+                        </th>
+                        <th class='text-center' style='cursor: pointer'
+                            @onclick='() => Manager.SortCompleted(SortColumn.CreatedAt)'>
+                            Created At
+                        </th>
+                        <th class='text-center'>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var order in Manager.CompletedOrders)
+                    @foreach (var order in Manager.GetPagedCompletedOrders())
                     {
                         <tr>
-                            <td class="text-center">@order.OrderId</td>
-                            <td class="text-center">@Manager.FormatTimestamp(order.DeliveryDate)</td>
-                            <td class="text-center">@Manager.FormatTimestamp(order.CompletedAt)</td>
-                            <td class="text-center">
-                                <button class="btn btn-primary btn-sm"
+                            <td class='text-center'>@order.OrderId</td>
+                            <td class='text-center'>@Manager.FormatTimestamp(order.DeliveryDate)</td>
+                            <td class='text-center'>@Manager.FormatTimestamp(order.CreatedAt)</td>
+                            <td class='text-center'>
+                                <button class='btn btn-primary btn-sm'
                                         @onclick='() => Manager.ToggleOrderDetails(order.OrderId, "Completed")'>
                                     View Details
                                 </button>
@@ -212,14 +293,14 @@ else
                         @if (Manager.SelectedOrder?.OrderId == order.OrderId && !Manager.ViewingUnassignedDetails)
                         {
                             <tr>
-                                <td colspan="4">
-                                    <div class="d-flex flex-wrap">
+                                <td colspan='4'>
+                                    <div class='d-flex flex-wrap'>
                                         @foreach (var item in Manager.SelectedOrder.OrderItems)
                                         {
-                                            <div class="card m-2" style="width: 18rem;">
-                                                <div class="card-body">
-                                                    <h5 class="card-title">@item.ItemName</h5>
-                                                    <p class="card-text">
+                                            <div class='card m-2' style='width: 18rem;'>
+                                                <div class='card-body'>
+                                                    <h5 class='card-title'>@item.ItemName</h5>
+                                                    <p class='card-text'>
                                                         <strong>Total Quantity:</strong> @item.TotalQuantity
                                                     </p>
                                                 </div>
@@ -232,14 +313,35 @@ else
                     }
                 </tbody>
             </table>
+
+            <!-- Pagination -->
+            <div class='d-flex justify-content-between align-items-center mt-2'>
+                <button class='btn btn-outline-secondary'
+                        @onclick='Manager.PrevCompletedPage'
+                        disabled='@(Manager.CompletedCurrentPage == 1)'>
+                    Previous
+                </button>
+                <span>
+                    Page @Manager.CompletedCurrentPage
+                    of @Manager.CompletedTotalPages
+                </span>
+                <button class='btn btn-outline-secondary'
+                        @onclick='Manager.NextCompletedPage'
+                        disabled='@(Manager.CompletedCurrentPage == Manager.CompletedTotalPages)'>
+                    Next
+                </button>
+            </div>
         }
     }
-
 }
 
 @code {
     protected override async Task OnInitializedAsync()
     {
+        // Load default "Unassigned" list when page first loads
         await Manager.LoadOrdersAsync("Unassigned");
+
+        // Make sure the page re-renders whenever the Manager’s state changes.
+        Manager.RegisterStateChangeCallback(StateHasChanged);
     }
 }
