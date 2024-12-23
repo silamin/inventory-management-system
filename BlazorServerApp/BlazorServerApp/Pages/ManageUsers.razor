@@ -3,6 +3,9 @@
 @using Microsoft.AspNetCore.Components.Web
 @using BlazorServerApp.Managers
 @using Users
+@inject BlazorServerApp.Application.UseCases.UserUseCases UserUseCases
+@inject Blazored.Toast.Services.IToastService ToastService
+@inject NavigationManager NavigationManager
 
 @inject UserManager Manager
 
@@ -10,6 +13,14 @@
 
 <h1>Manage Users</h1>
 <p>Here you can view and manage users by their roles.</p>
+
+<!-- Add User Button -->
+<div class="d-flex justify-content-between mb-4">
+    <div></div>
+    <button class="btn btn-primary" @onclick="() => ShowAddUserModal = true">
+        <i class="fas fa-plus"></i> Add User
+    </button>
+</div>
 
 @if (Manager.IsLoading)
 {
@@ -132,7 +143,114 @@ else
     }
 }
 
+<!-- Add User Modal -->
+@if (ShowAddUserModal)
+{
+    <div class="modal fade show" style="display:block;" aria-modal="true" role="dialog">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New User</h5>
+                    <button type="button" class="btn-close" @onclick="() => CloseAddUserModal()" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="newUser" OnValidSubmit="AddNewUser">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary class="alert alert-danger" />
+
+                        <!-- Username Input -->
+                        <div class="mb-3">
+                            <label for="userName" class="form-label">Username</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fas fa-user text-muted"></i></span>
+                                <InputText id="userName" @bind-Value="newUser.UserName" class="form-control" placeholder="Enter username" />
+                            </div>
+                            <ValidationMessage For="@(() => newUser.UserName)" class="text-danger mt-1" />
+                        </div>
+
+                        <!-- Password Input -->
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fas fa-lock text-muted"></i></span>
+                                <InputText id="password" @bind-Value="newUser.Password" type="password" class="form-control" placeholder="Enter password" />
+                            </div>
+                            <ValidationMessage For="@(() => newUser.Password)" class="text-danger mt-1" />
+                        </div>
+
+                        <!-- Role Selection -->
+                        <div class="mb-3">
+                            <label for="userRole" class="form-label">Role</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fas fa-user-tag text-muted"></i></span>
+                                <InputSelect id="userRole" @bind-Value="newUser.UserRole" class="form-control">
+                                    @foreach (UserRole role in Enum.GetValues(typeof(UserRole)))
+                                    {
+                                        <option value="@role">@Manager.HumanizeRole(role)</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                            <ValidationMessage For="@(() => newUser.UserRole)" class="text-danger mt-1" />
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg mt-3" disabled="@isLoading">
+                                @if (isLoading)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                    @:Adding...
+                                }
+                                else
+                                {
+                                    <i class="fas fa-plus"></i> @:Add User
+                                }
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}
+
 @code {
+    private bool ShowAddUserModal = false;
+    private CreateUser newUser = new CreateUser();
+    private bool isLoading = false;
+
+    private async Task AddNewUser()
+    {
+        isLoading = true;
+
+        try
+        {
+            await UserUseCases.AddUserAsync(newUser);
+            ToastService.ShowSuccess($"User '{newUser.UserName}' added successfully!");
+            await Manager.RefreshUsersAsync(ActiveRole);
+
+            // Reset modal state
+            newUser = new CreateUser();
+            ShowAddUserModal = false;
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError("An error occurred while adding the user.");
+            Console.WriteLine(ex.Message);
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void CloseAddUserModal()
+    {
+        ShowAddUserModal = false;
+    }
+
     private UserRole ActiveRole { get; set; } = UserRole.InventoryManager;
     private List<GetUser> UsersToShow => PaginateUsers();
     private const int PageSize = 14;

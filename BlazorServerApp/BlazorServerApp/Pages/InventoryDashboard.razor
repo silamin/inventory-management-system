@@ -1,13 +1,25 @@
 ﻿@page "/inventory-dashboard"
 @attribute [Authorize(Roles = "INVENTORY_MANAGER")]
 @using BlazorServerApp.Managers
+@using Items
 @inject InventoryManager Manager
 @inject Blazored.Toast.Services.IToastService ToastService
+@inject BlazorServerApp.Application.UseCases.ItemUseCases ItemUseCases
+@inject NavigationManager NavigationManager
 
 <PageTitle>Inventory Dashboard</PageTitle>
 
 <h1>Inventory Dashboard</h1>
 <p>Welcome to your inventory management system.</p>
+
+<!-- Add Item Button (top-right) -->
+<div class="d-flex justify-content-between mb-2">
+    <div></div>
+    <button class="btn btn-primary" @onclick="() => ShowAddItemModal = true">
+        <i class="fas fa-plus"></i> Add Item
+    </button>
+</div>
+
 @if (Manager.IsLoading)
 {
     <div class="text-center my-4">
@@ -135,8 +147,85 @@ else
     </div>
 }
 
+<!--
+    Modal for Adding a New Item
+    We'll only show it if ShowAddItemModal == true
+-->
+@if (ShowAddItemModal)
+{
+    <div class="modal fade show" style="display:block;" aria-modal="true" role="dialog">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Item</h5>
+                    <button type="button" class="btn-close" @onclick="() => CloseAddItemModal()" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="newItem" OnValidSubmit="AddNewItem">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary class="alert alert-danger" />
+
+                        <!-- Name Input -->
+                        <div class="mb-3">
+                            <label for="itemName" class="form-label">Item Name</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fas fa-tag text-muted"></i></span>
+                                <InputText id="itemName" @bind-Value="newItem.Name" class="form-control" placeholder="Enter item name" />
+                            </div>
+                            <ValidationMessage For="@(() => newItem.Name)" class="text-danger mt-1" />
+                        </div>
+
+                        <!-- Description Input -->
+                        <div class="mb-3">
+                            <label for="itemDescription" class="form-label">Description</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fas fa-align-left text-muted"></i></span>
+                                <InputTextArea id="itemDescription" @bind-Value="newItem.Description" class="form-control" placeholder="Enter item description" />
+                            </div>
+                        </div>
+
+                        <!-- Quantity Input -->
+                        <div class="mb-3">
+                            <label for="quantityInStore" class="form-label">Quantity In Store</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fas fa-boxes text-muted"></i></span>
+                                <InputNumber TValue="int" @bind-Value="newItem.QuantityInStore" class="form-control" min="0" placeholder="Enter quantity" />
+                            </div>
+                            <ValidationMessage For="@(() => newItem.QuantityInStore)" class="text-danger mt-1" />
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg mt-3" disabled="@isLoading">
+                                @if (isLoading)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                    @:Adding...
+                                }
+                                else
+                                {
+                                    <i class="fas fa-plus"></i> @:Add Item
+                                }
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dark background overlay for modal -->
+    <div class="modal-backdrop fade show"></div>
+}
 
 @code {
+    // For the "Add New Item" modal
+    private bool ShowAddItemModal = false;
+
+    // Model to create a new item
+    private CreateItem newItem = new CreateItem();
+    private bool isLoading = false;
+
     protected override async void OnInitialized()
     {
         Manager.RegisterStateChangeCallback(StateHasChanged);
@@ -174,7 +263,6 @@ else
             ToastService.ShowError($"Error: {ex.Message}");
             await Manager.LoadDataAsync();
             StateHasChanged(); // Refresh the UI
-
         }
     }
 
@@ -207,11 +295,47 @@ else
             ToastService.ShowSuccess("Order placed successfully");
             await Manager.LoadDataAsync();
             StateHasChanged(); // Refresh the UI
-
         }
         catch (Exception ex)
         {
             ToastService.ShowError($"Error: {ex.Message}");
+        }
+    }
+
+    // Show/Close the Add Item modal
+    private void CloseAddItemModal()
+    {
+        ShowAddItemModal = false;
+        StateHasChanged();
+    }
+
+    private async Task AddNewItem()
+    {
+        isLoading = true;
+
+        try
+        {
+            await ItemUseCases.CreateItemAsync(newItem);
+            ToastService.ShowSuccess($"Item '{newItem.Name}' added successfully!");
+
+            // Reload the data so the new item appears
+            await Manager.LoadDataAsync();
+
+            // Reset the form fields
+            newItem = new CreateItem();
+
+            // Close the modal
+            ShowAddItemModal = false;
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError("An error occurred while adding the item.");
+            Console.WriteLine(ex.Message);
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
         }
     }
 }
