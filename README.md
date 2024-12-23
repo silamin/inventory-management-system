@@ -17,7 +17,7 @@ An advanced inventory management system with role-based functionality designed t
 
 ## System Architecture
 
-This system is built with the following architecture:
+This system is built with the following 3-tier architecture:
 
 1. **Blazor UI**: A gRPC client application for interacting with the system via a user-friendly interface.
 2. **Spring Boot gRPC Server**: Acts as a middleware service layer, exposing gRPC endpoints. It receives requests from the Blazor UI and delegates business logic calls to the .NET Web API.
@@ -31,6 +31,16 @@ This system is built with the following architecture:
 - **Role-Based Access**:
   - Inventory Manager vs. Warehouse Worker roles are checked server-side in the .NET API.
   - Unauthorized requests return `401 Unauthorized` or `403 Forbidden` based on the scenario.
+
+---
+
+## Programming Languages
+
+The system is built using the following programming languages:
+
+1. **C#**: For the Blazor UI and .NET Web API.
+2. **Java**: For the Spring Boot gRPC Server.
+3. **HTML/CSS/JavaScript**: For Blazor's frontend interface.
 
 ---
 
@@ -104,16 +114,3 @@ This system is built with the following architecture:
   5. Mark orders as completed.
 
 ---
-
-## API Details
-
-### Authentication
-- **Endpoint**: `/api/auth/login`
-- **Method**: POST
-- **Headers**: None
-- **Body**:
-  ```json
-  {
-    "username": "string",
-    "password": "string"
-  }
